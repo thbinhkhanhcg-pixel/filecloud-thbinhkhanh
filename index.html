@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>File Manager</title>
+<style>
+:root{--bg:#0d1526;--side:#131f38;--card:#17233f;--line:#243254;--tx:#e8edf7;--mu:#8b99b8;--ac:#2f6bff;--rd:#ef4f5f}
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+aside{width:282px;background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:14px;position:sticky;top:0;height:100vh;flex:none}
+.logo{font-size:20px;font-weight:700;padding:4px 8px;display:flex;gap:10px;align-items:center}
+.logo i{font-style:normal;background:linear-gradient(135deg,#ffb830,#ff7a18);border-radius:8px;width:34px;height:34px;display:grid;place-items:center}
+.acc{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#182646}
+.av{width:36px;height:36px;border-radius:50%;background:var(--ac);display:grid;place-items:center;font-weight:700;flex:none}
+.addacc{display:flex;align-items:center;gap:12px;padding:10px;border:1px dashed #33466f;border-radius:12px;color:var(--mu);cursor:pointer}.addacc:hover{color:var(--tx);border-color:var(--ac)}.addacc i{font-style:normal;width:36px;height:36px;border-radius:50%;background:#1d2c4f;display:grid;place-items:center;font-size:20px}
+.acc small{display:block;color:var(--mu);font-size:12px}
+nav a{display:flex;gap:10px;padding:10px 12px;border-radius:10px;color:var(--mu);cursor:pointer;text-decoration:none;margin-bottom:2px}
+nav a:hover{color:var(--tx)}nav a.on{background:#1d3160;color:var(--tx);border:1px solid #2b4583}
+main{flex:1;min-width:0}
+header{height:60px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 24px;font-size:18px;font-weight:600}
+#menu{display:none;background:none;border:0;font-size:20px;cursor:pointer}
+.wrap{max-width:1152px;margin:32px auto;padding:0 16px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px}
+.head{padding:20px;display:flex;gap:16px;align-items:flex-start}
+.ico{width:46px;height:46px;border-radius:12px;background:#1e3a6e;border:1px solid #2f4f8c;display:grid;place-items:center;font-size:22px;flex:none}
+.head h2{font-size:18px}.meta{color:var(--mu);font-size:12.5px;margin-top:4px}
+.crumb a{cursor:pointer;color:var(--mu)}.crumb a:hover{color:var(--tx)}
+.tag{display:inline-block;border:1px solid var(--line);background:#1b2a4d;border-radius:6px;padding:1px 8px;font-size:11.5px;color:var(--mu);margin:8px 6px 0 0}
+.btn{border:1px solid var(--line);background:#1b2a4d;border-radius:10px;padding:7px 14px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap}
+.btn:hover{background:#22345e}.btn.p{background:var(--ac);border-color:var(--ac)}.btn.p:hover{background:#4a7fff}.btn.d{color:#ff8b96}
+.bar{padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+input[type=text],input[type=password],select{background:#101b33;border:1px solid var(--line);border-radius:10px;padding:8px 12px;outline:none}
+input:focus,select:focus{border-color:var(--ac)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--ac);cursor:pointer;flex:none}
+.row{display:flex;align-items:center;gap:16px;padding:10px 16px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}.row:hover{background:#1b2a4a}
+.fi{width:36px;height:40px;border-radius:8px;display:grid;place-items:center;font-size:10px;font-weight:800;flex:none}
+.nm{flex:1;min-width:0}.nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.nm small{color:var(--mu);font-size:12px}
+.nt{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;background:#101b33;text-align:left}.nt.new{border-color:#3a63c8;box-shadow:0 0 0 1px #3a63c833}
+.nt h4{margin:0;font-size:14.5px;color:var(--tx)}.nt .nm2{color:var(--mu);font-size:12px;margin-top:3px}.nt .nb{white-space:pre-wrap;line-height:1.55;font-size:14px;color:var(--tx);margin-top:8px;word-break:break-word}
+.nt details{margin-top:8px;color:var(--mu);font-size:12.5px}.nt details div{padding:2px 0}.nt .nact{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ntd{font-size:12px;font-weight:700;color:var(--mu);margin:14px 0 2px}.ntd::first-letter{text-transform:uppercase}.nlist{max-height:56vh;overflow:auto;padding-right:2px}
+#nBadge{background:#e5484d;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:auto;font-weight:700}
+.rcp{flex:none;min-height:220px;max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px 10px}.rcp label{flex-direction:row!important;align-items:center;gap:8px!important;padding:4px 0;font-size:13.5px!important}.rcp label small{margin-left:auto;font-size:11.5px}
+#nb1{flex:none}textarea{background:#101b33;border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none;font:inherit;color:inherit;resize:vertical;min-height:76px}textarea:focus{border-color:var(--ac)}
+.chip.req,.mi.req{background:#5a1f2d;color:#ff8b8b;font-weight:700;border:1px solid #a23a50;border-radius:5px;padding:0 7px}.mi.req{padding:1px 8px;font-size:12px}
+.chip{background:#23396b;border-radius:5px;padding:0 7px;margin-left:6px;font-size:11px;color:#b9c9ee}
+.acts{display:flex;gap:8px;align-items:center}
+.empty{padding:56px 20px;text-align:center;color:var(--mu)}
+.ov{position:fixed;inset:0;background:#000a;display:none;place-items:center;z-index:9;padding:16px}
+.ov.on{display:grid}
+.md{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;width:min(480px,100%);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.md.big{width:min(1000px,100%);height:90vh}.md.big iframe,.md.big img{flex:1;width:100%;border:0;border-radius:10px;background:#fff;min-height:0;object-fit:contain}
+.md h3{font-size:17px}.md label{display:flex;flex-direction:column;gap:5px;color:var(--mu);font-size:12.5px}
+.md input,.md select{width:100%;color:var(--tx)}.md p,.md li{color:var(--mu);font-size:13px}.md ol{padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.fl{display:flex;gap:8px;justify-content:flex-end}
+#menuBox{position:fixed;background:#1b2a4d;border:1px solid var(--line);border-radius:10px;padding:4px;display:none;z-index:8;min-width:170px}
+#menuBox button{display:block;width:100%;text-align:left;background:none;border:0;padding:8px 12px;border-radius:7px;cursor:pointer}
+#menuBox button:hover{background:#26396a}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);background:#26396a;padding:10px 18px;border-radius:10px;opacity:0;transition:.25s;z-index:20;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:820px){aside{position:fixed;left:-300px;z-index:7;transition:.2s}aside.open{left:0}#menu{display:block}.acts .hide{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:12px;padding:8px 15px}
+.btn.i{padding:8px;border-color:transparent;background:none;color:var(--mu)}.btn.i:hover{background:#22345e;color:var(--tx)}
+a.btn{text-decoration:none;color:inherit}nav a{align-items:center}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:2px solid #5b6b8f;border-radius:6px;background:transparent;cursor:pointer}
+input[type=checkbox]:checked{border-color:var(--ac);background:var(--ac) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/14px no-repeat}
+.fi .ic{width:22px;height:22px}.ico .ic{width:24px;height:24px;color:#5aa0ff}.logo i .ic{width:20px;height:20px;color:#fff}.addacc i .ic{width:18px;height:18px}#menu .ic{width:22px;height:22px}
+.meta{display:flex;gap:16px;flex-wrap:wrap}.mi{display:inline-flex;align-items:center;gap:6px}
+.tag .ic{width:12px;height:12px;margin-right:4px;vertical-align:-2px}
+.srch{display:flex;align-items:center;gap:8px;background:#101b33;border:1px solid var(--line);border-radius:12px;padding:0 12px;color:var(--mu)}.srch input{border:0;background:none;padding:8px 0;width:190px}
+.vd{width:1px;height:22px;background:var(--line);margin:0 4px}
+#menuBox button{display:flex;align-items:center;gap:9px}
+.mh{padding:7px 12px 4px;font-size:11px;letter-spacing:.06em;color:var(--mu);text-transform:uppercase}
+.ck{width:18px;display:inline-flex;flex:none}
+.fbar{display:flex;align-items:center;gap:10px;padding:8px 14px;color:var(--mu)}.fbar input{flex:1;background:none;border:0;padding:8px 0;color:var(--tx)}
+.btn.i.on{background:#22345e;color:#fff}
+.md.wide{width:min(720px,100%)}
+.rb{display:inline-block;border-radius:6px;padding:1px 9px;font-size:11.5px;font-weight:700;margin-right:6px}
+.r-admin{color:#ff8b8b;background:#43202b}.r-bgh{color:#c4a4ff;background:#2e2352}.r-leader{color:#3fe0b5;background:#12403a}.r-warn{color:#ffc233;background:#3a3119}.r-gv{color:#8fb4ff;background:#1b2f57}.r-lock{color:#aab4cf;background:#2a3350}
+.rad{display:flex;flex-direction:row!important;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;text-align:left}.rad input{width:auto;margin-top:4px;flex:none}.rad input[type=checkbox]{width:18px;height:18px;margin-top:2px}.rad span{display:block;color:var(--tx);font-size:14px}.rad small{display:block;color:var(--mu);font-size:12.5px;margin-top:2px;line-height:1.45}.rad+select{margin:-4px 0 0}
+.rt{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 8px;font-size:11.5px;color:var(--mu)}
+.urow{display:grid;grid-template-columns:1fr 100px 100px 84px 64px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.urow .btn{width:100%;padding:8px 6px}.urow .nm b{cursor:default}
+.ucnt{color:var(--mu);font-size:12.5px;padding:2px 0 8px}
+#ulist{max-height:50vh;overflow:auto}
+.upbar{position:relative;height:22px;border-radius:11px;background:var(--line);overflow:hidden}.upbar i{display:block;height:100%;width:0;border-radius:11px;background:linear-gradient(90deg,#2f6bff,#4f8bff);transition:width .25s ease}.upbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.upbar.wait i{background:linear-gradient(90deg,#2f6bff,#7aa8ff,#2f6bff);background-size:200% 100%;animation:upwait 1.2s linear infinite}@keyframes upwait{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.upbar.ind i{width:35%!important;background:repeating-linear-gradient(45deg,#2f6bff 0 10px,#4f8bff 10px 20px);animation:upind 1.1s linear infinite}@keyframes upind{0%{margin-left:-35%}100%{margin-left:100%}}
+.qsum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.qsum>div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}.qsum small{display:block;color:var(--mu);font-size:11.5px}.qsum b{font-size:18px}
+.qbar{height:8px;border-radius:5px;background:var(--line);overflow:hidden}.qbar i{display:block;height:100%;background:#3b82f6;border-radius:5px}.qbar.w i{background:#f59e0b}.qbar.r i{background:#ef4444}
+.qrow{display:grid;grid-template-columns:28px 1fr 70px 90px 56px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.qrow .qb{grid-column:2/-1}.qrow .nm b{cursor:default}.qrow .num{text-align:right;font-variant-numeric:tabular-nums}.qrow .rk{color:var(--mu);font-size:12.5px;text-align:center}
+#qlist{max-height:46vh;overflow:auto}.qtop{display:flex;gap:10px;flex-wrap:wrap}.qtop label{flex:1;min-width:150px}
+@media(max-width:560px){.qsum{grid-template-columns:1fr}.qrow{grid-template-columns:24px 1fr 80px}.qrow .cnt,.qrow .pc{display:none}.qrow .qb{grid-column:2/-1}}
+@media(max-width:560px){.urow{grid-template-columns:1fr 1fr}.urow .nm{grid-column:1/-1}}
+#menuBox{max-width:calc(100vw - 16px);overflow:auto;overscroll-behavior:contain}
+.wrap{padding-bottom:72px}
+main{display:flex;flex-direction:column}
+.wrap{width:100%;padding-bottom:32px}
+footer{margin-top:auto;padding:20px 16px 24px;text-align:center;color:var(--mu);font-size:13.5px}
+.mk{margin-top:auto;padding:6px 12px 2px;color:var(--mu);font-size:12.5px;text-align:left;opacity:.85}.mk .gear{margin-right:3px}
+footer .sep{margin:0 10px;opacity:.5}footer svg{width:16px;height:16px;fill:#ff3b4e;stroke:none;vertical-align:-3px;margin:0 3px}
+.md.dlg{padding:0;gap:0;width:min(440px,100%)}
+#ov2{z-index:15}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 14px 22px;border-bottom:1px solid var(--line)}.dh h3{font-size:18px}
+.db{padding:18px 22px;display:flex;flex-direction:column;gap:12px}.db p{color:var(--mu);line-height:1.55;font-size:14px}.db p b{color:var(--tx)}
+.dlg label{color:var(--tx);font-weight:600;font-size:13.5px}.dlg input{font-size:15px;padding:12px 14px;border-radius:12px}
+.df{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 22px;border-top:1px solid var(--line)}
+.btn.t{background:none;border-color:transparent;color:var(--tx)}.btn.t:hover{background:#22345e}
+.btn.dng{background:#e5484d;border-color:#e5484d;color:#fff}.btn.dng:hover{background:#f0646a}
+.hg{display:flex;flex-direction:column;gap:6px}.hg h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx);margin-top:12px}
+.hg ul,.hg ol{padding-left:20px;display:flex;flex-direction:column;gap:7px}.hg li{font-size:13.5px;line-height:1.55;color:var(--mu)}.hg li b{color:var(--tx)}
+.more{justify-content:center;gap:16px;color:var(--mu);font-size:13px}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fsel{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--mu)}.fsel select{min-width:150px}
+.fpanel{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.fpanel #fq{flex:1;min-width:180px;background:#101b33;border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--tx)}
+.fic{color:var(--mu);display:inline-flex;align-self:center}
+.stsum{display:flex;align-items:center;gap:14px;margin:8px 0 4px}.bar2{flex:1;height:8px;border-radius:99px;background:#101b33;overflow:hidden}.bar2 i{display:block;height:100%;background:linear-gradient(90deg,#3fe0b5,#2f6bff)}
+.srow{display:grid;grid-template-columns:1fr 90px 200px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.srow .nm b{cursor:default}.srow small{color:var(--mu);font-size:12px}
+#stlist{max-height:46vh;overflow:auto}
+@media(max-width:560px){.srow{grid-template-columns:1fr auto}.srow small{grid-column:1/-1}}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-2px 0 4px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 14px;color:var(--mu);cursor:pointer;font-weight:600;font-size:13.5px;margin-bottom:-1px}.tab:hover{color:var(--tx)}.tab.on{color:var(--tx);border-color:var(--ac)}
+.nup{display:flex;flex-direction:column;gap:12px}
+.irow{display:grid;grid-template-columns:28px 1fr 130px 110px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.irow .ino{color:var(--mu);font-size:12px}.irow .nm b{cursor:default}.irow small{color:var(--mu);font-size:12px}.irow code{background:#101b33;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:12.5px;color:var(--tx)}
+.irow .rb,.irow .rt{justify-self:start;margin:0}
+#impList{max-height:36vh;overflow:auto}
+#impHint{min-height:18px;color:#ffc233;font-size:12.5px}
+.nm .fnm{display:block;color:var(--tx);opacity:.8;font-size:13px}
+@media(max-width:560px){.irow{grid-template-columns:24px 1fr auto}.irow .iu{grid-column:2/-1}.irow>.rb,.irow>.rt,.irow .iu:empty~.rb,.irow .iu:empty~.rt{grid-column:2/-1}}
+.irow .iu:empty{display:none}
+.irow .iu:empty~.rb,.irow .iu:empty~.rt{grid-column:3/-1}
+#busy{position:fixed;top:0;left:0;right:0;height:3px;z-index:999;display:none;background:linear-gradient(90deg,transparent,var(--ac),transparent) no-repeat;background-size:40% 100%;animation:bz 1s linear infinite;pointer-events:none}@keyframes bz{from{background-position:-40% 0}to{background-position:140% 0}}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol><symbol id="i-folderplus" viewBox="0 0 24 24"><path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol><symbol id="i-folderopen" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.2 10H20a2 2 0 0 1 1.9 2.5l-1.5 6a2 2 0 0 1-1.9 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.7.9l.8 1.2a2 2 0 0 0 1.7.9H18a2 2 0 0 1 2 2v2"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="i-sort" viewBox="0 0 24 24"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol><symbol id="i-drive" viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol><symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol><symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol></defs></svg>
+<aside id="sb">
+ <div class="logo"><i><svg class="ic"><use href="#i-folderopen"/></svg></i>File Cloud</div>
+ <div class="acc"><div class="av">GV</div><div><b id="accN"></b><small id="accS"></small></div></div>
+ <div class="addacc" id="addAcc" data-a="addU" style="display:none"><i><svg class="ic"><use href="#i-plus"/></svg></i>Thêm tài khoản</div>
+ <nav>
+  <a class="on" data-a="home" id="nHome"><svg class="ic"><use href="#i-folderopen"/></svg>File Manager</a>
+  <a data-a="notes" id="nNote" style="display:none"><svg class="ic"><use href="#i-bell"/></svg>Thông báo<b id="nBadge" style="display:none"></b></a>
+  <a data-a="users" id="nUsers" style="display:none"><svg class="ic"><use href="#i-users"/></svg>Quản lý tài khoản</a>
+  <a data-a="usage" id="nUsage" style="display:none"><svg class="ic"><use href="#i-drive"/></svg>Theo dõi dung lượng</a>
+  <a data-a="pw" id="nPw" style="display:none"><svg class="ic"><use href="#i-lock"/></svg>Đổi mật khẩu</a>
+  <a data-a="set" id="nSet" style="display:none"><svg class="ic"><use href="#i-sliders"/></svg>Cài đặt máy chủ</a>
+  <a data-a="help" id="nHelp"><svg class="ic"><use href="#i-help"/></svg>Hướng dẫn</a>
+  <a data-a="login" id="nLog"><svg class="ic"><use href="#i-key"/></svg>Đăng nhập</a>
+  <a data-a="logout" id="nOut" style="display:none"><svg class="ic"><use href="#i-logout"/></svg>Đăng xuất</a>
+ </nav>
+ <div class="mk"><span class="gear" aria-hidden="true">⚙️</span> Built by Doan Kan</div>
+</aside>
+<main>
+ <header><button id="menu" data-a="menu"><svg class="ic"><use href="#i-menu"/></svg></button>File Manager</header>
+ <div class="wrap">
+  <section class="card head">
+   <div class="ico"><svg class="ic"><use href="#i-drive"/></svg></div>
+   <div style="flex:1;min-width:0"><h2 class="crumb" id="crumb"></h2><div class="meta" id="meta"></div><span class="tag" id="ftag"><svg class="ic"><use href="#i-drive"/></svg>root folder</span></div>
+   <button class="btn" data-a="share"><svg class="ic"><use href="#i-share"/></svg>Chia sẻ</button><button class="btn i" data-m="hd" title="Tùy chọn"><svg class="ic"><use href="#i-more"/></svg></button>
+  </section>
+  <section class="card bar">
+   <input type="checkbox" id="all" title="Chọn tất cả"><span class="vd"></span>
+   <button class="btn p" data-a="up"><svg class="ic"><use href="#i-upload"/></svg>Tải lên</button>
+   <button class="btn" data-a="nf"><svg class="ic"><use href="#i-folderplus"/></svg>Thư mục mới</button>
+   <button class="btn d" id="delSel" data-a="delSel" style="display:none"></button>
+   <span class="sp"></span>
+   <button class="btn i" id="bS" data-a="tSearch" title="Tìm kiếm"><svg class="ic"><use href="#i-search"/></svg></button>
+   <button class="btn i" id="bF" data-a="tFilter" title="Lọc"><svg class="ic"><use href="#i-filter"/></svg></button>
+   <button class="btn i" data-m="sort" title="Sắp xếp"><svg class="ic"><use href="#i-sort"/></svg></button>
+   <button class="btn i" data-m="disp" title="Tùy chọn hiển thị"><svg class="ic"><use href="#i-sliders"/></svg></button>
+   <button class="btn i" data-a="re" title="Tải lại"><svg class="ic"><use href="#i-refresh"/></svg></button>
+  </section>
+  <section class="card fbar" id="sbar" style="display:none"><svg class="ic"><use href="#i-search"/></svg><input type="text" id="q" placeholder="Tìm tệp, thư mục, môn, lớp, người tải trong toàn bộ kho…"></section>
+  <section class="card fpanel" id="fbar" style="display:none"><div class="frow" style="align-items:center"><span class="fic"><svg class="ic"><use href="#i-filter"/></svg></span><input type="text" id="fq" placeholder="Lọc theo tên tệp hoặc thư mục…"><button class="btn p" data-a="fApply">Áp dụng</button><button class="btn" data-a="fClear">Xóa bộ lọc</button></div><div class="frow" id="fsel"></div></section>
+  <section class="card" id="list"></section>
+ </div>
+<footer>Tiểu học Bình Khánh © 2026<span class="sep">·</span>Digitalizing Education with <svg viewBox="0 0 24 24" aria-label="love"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></footer>
+</main>
+<div class="ov" id="ov"><div class="md" id="md"></div></div>
+<div class="ov" id="ov2"><div class="md dlg" id="md2"></div></div>
+<div id="busy"></div><div id="menuBox"></div><div id="toast"></div>
+<input type="file" id="file" multiple hidden>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const ic=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
+const b64=s=>btoa(unescape(encodeURIComponent(s)));
+let db={folders:[],items:[]},cur='',sel=new Set(),q='',fq='',sort='date',sdir=-1,showS=false,showF=false,vis=[],F={},DEF0={src:'mine',type:'folder'},defF={...DEF0},SX={f:'',flt:'all'},pg=1,lastSig='',PS=50,D={th:true,sz:48};
+try{D={...D,...JSON.parse(localStorage.getItem('khd')||'{}')}}catch(e){}
+const saveD=()=>{try{localStorage.setItem('khd',JSON.stringify(D))}catch(e){}};
+// ===== Kết nối máy chủ Google Apps Script. Địa chỉ lấy từ config.json (cùng thư mục với trang) hoặc từ mục Cài đặt máy chủ =====
+const DEFAULT_API='';
+let API='',APIBAD=false;
+const DEF='0977889090';
+let S=null;try{S=JSON.parse(sessionStorage.getItem('khs')||'null')}catch(e){}
+const saveS=()=>{try{sessionStorage.setItem('khs',JSON.stringify(S))}catch(e){}};
+const can=()=>!!S;
+// Cài đặt máy chủ: chỉ Admin thấy. Ngoại lệ: chưa có địa chỉ hoặc không kết nối được thì ai cũng cần nhập để dùng được.
+const canCfg=()=>!!(S&&S.role=='admin')||!API||APIBAD;
+async function loadApi(){let o='';try{o=localStorage.getItem('fcapi')||''}catch(e){}
+ if(o){API=o;return}
+ try{const r=await fetch('config.json?t='+Date.now());if(r.ok){const j=await r.json();if(j&&typeof j.api=='string')API=j.api.trim()}}catch(e){}
+ if(!API)API=DEFAULT_API}
+let UD={},RT={};const ud=n=>UD[n]||RT[n];
+const TEAMS=['Khối 1','Khối 2','Khối 3','Khối 4','Khối 5','Anh Văn','Bộ Môn'];
+const teamOpts=v=>'<option value="">— Không chọn —</option>'+(v&&!TEAMS.includes(v)?`<option selected>${esc(v)}</option>`:'')+TEAMS.map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('');
+let UL={users:[]},UF='';
+const rk=u=>u.role=='admin'?['admin','Admin']:u.role=='bgh'?['bgh','Ban giám hiệu']:u.leader?['leader','Tổ trưởng']:['gv','Giáo viên'];
+const uBadges=u=>{const k=rk(u);return '<span class="rb r-'+k[0]+'">'+k[1]+'</span>'+(u.team?'<span class="rt">'+esc(u.team)+'</span>':'')};
+const usersHtml=()=>{const L=UL.users.filter(u=>!UF||(UF=='__none'?!u.team:u.team===UF));
+ return '<div class="ucnt">'+L.length+' tài khoản</div>'+(L.map(u=>'<div class="urow"><div class="nm"><b>'+esc(u.name)+'</b>'+(u.fn?'<span class="fnm">'+esc(u.fn)+'</span>':'')+'<small>'+uBadges(u)+(u.lock?'<span class="rb r-lock">Đã khóa</span>':'')+(u.mc?'<span class="rb r-warn" title="Vẫn đang dùng mật khẩu ban đầu (trùng tên đăng nhập)">Chưa đổi mật khẩu</span>':'')+'</small></div><button class="btn" data-a="uEdit" data-id="'+esc(u.name)+'">Phân quyền</button><button class="btn" data-a="uReset" data-id="'+esc(u.name)+'">Đặt lại MK</button>'+(u.name==S.name?'<span></span><span></span>':'<button class="btn" data-a="uLock" data-id="'+esc(u.name)+'">'+(u.lock?'Mở khóa':'Khóa')+'</button><button class="btn d" data-a="uDel" data-id="'+esc(u.name)+'">Xóa</button>')+'</div>').join('')||'<div class="empty" style="padding:24px">Không có tài khoản nào trong tổ này.</div>')};
+let QD=null,QF='',QS='b';
+const qHtml=()=>{if(!QD)return '';const T=QD.bytes||0;let L=QD.rows.filter(r=>!QF||(QF=='__none'?!r.team&&!r.gone:QF=='__gone'?r.gone:r.team===QF));
+ L=[...L].sort((a,b)=>QS=='n'?b.n-a.n||b.b-a.b:QS=='a'?a.name.localeCompare(b.name,'vi'):b.b-a.b||b.n-a.n);const mx=Math.max(1,...L.map(r=>r.b));
+ const sb=L.reduce((a,r)=>a+r.b,0),sn=L.reduce((a,r)=>a+r.n,0);
+ return '<div class="ucnt">'+L.length+' tài khoản · '+sn+' tệp · '+fsize(sb)+'</div>'+(L.map((r,k)=>'<div class="qrow"><span class="rk">'+(k+1)+'</span><div class="nm"><b>'+esc(r.name)+'</b>'+(r.fn?'<span class="fnm">'+esc(r.fn)+'</span>':'')+'<small>'+(r.gone?'<span class="rb r-lock">Tài khoản đã xóa, dữ liệu còn giữ</span>':uBadges(r))+'</small></div><span class="num cnt">'+r.n+' tệp</span><b class="num">'+(r.b?fsize(r.b):'0')+'</b><span class="num pc" style="color:var(--mu)">'+(T?(r.b*100/T).toFixed(1):'0')+'%</span><div class="qb"><div class="qbar"><i style="width:'+(r.b*100/mx)+'%"></i></div></div></div>').join('')||'<div class="empty" style="padding:24px">Không có dữ liệu.</div>')};
+const qBody=()=>{const q=QD.quota,pc=q&&q.limit?q.used*100/q.limit:0;
+ return '<div class="qsum"><div><small>Tổng số tệp</small><b>'+QD.files+'</b></div><div><small>Dung lượng đã tải lên</small><b>'+fsize(QD.bytes)+'</b></div><div><small>Google Drive đã dùng</small><b>'+(q?fsize(q.used)+(q.limit?' / '+fsize(q.limit):''):'Không đọc được')+'</b>'+(q&&q.limit?'<div class="qbar'+(pc>=90?' r':pc>=70?' w':'')+'" style="margin-top:6px"><i style="width:'+Math.min(100,pc)+'%"></i></div>':'')+'</div></div>'
+ +'<div class="qtop"><label>Lọc theo tổ chuyên môn<select id="qf"><option value="">Tất cả</option>'+TEAMS.map(t=>'<option'+(QF===t?' selected':'')+'>'+t+'</option>').join('')+'<option value="__none"'+(QF=='__none'?' selected':'')+'>Chưa phân tổ</option><option value="__gone"'+(QF=='__gone'?' selected':'')+'>Tài khoản đã xóa</option></select></label><label>Sắp xếp<select id="qs"><option value="b"'+(QS=='b'?' selected':'')+'>Dung lượng nhiều nhất</option><option value="n"'+(QS=='n'?' selected':'')+'>Số tệp nhiều nhất</option><option value="a"'+(QS=='a'?' selected':'')+'>Tên A–Z</option></select></label></div><div id="qlist">'+qHtml()+'</div><p style="font-size:12px">Dung lượng Google Drive đã dùng gồm cả thùng rác, dữ liệu hệ thống và mọi thứ khác trong tài khoản Google của trường, nên có thể lớn hơn tổng các tệp ở đây. Số liệu cập nhật lúc '+new Date(QD.at).toLocaleString('vi-VN')+'.</p>'};
+const info=u=>(u.role=='admin'?'Admin':u.role=='bgh'?'Ban giám hiệu':'Giáo viên')+(u.team?' · '+u.team:'')+(u.leader?' · Tổ trưởng':'');
+// Quyền xem: Admin và BGH xem tất cả; Tổ trưởng xem tệp của cả tổ; Giáo viên chỉ xem tệp của mình
+const dn=f=>f.split('/').pop().split('~')[0];
+const shRoot=f=>{while(f){if(db.share&&db.share[f])return f;f=par(f)}return ''};
+const inShare=f=>{const r=shRoot(f);return !!(r&&S&&S.team&&db.share[r].includes(S.team))};
+const canSeeF=f=>{if(!S)return false;if(S.role=='admin'||S.role=='bgh')return true;const ow=(db.fowner||{})[f];if(ow===S.name)return true;const o=ud(ow);if(S.leader&&S.team&&o&&o.team===S.team)return true;return inShare(f)};
+const canPut=f=>!!S&&(S.role=='admin'||S.role=='bgh'||(db.fowner||{})[f]===S.name||inShare(f));
+const canShare=f=>!!S&&(S.role=='admin'||((S.role=='bgh'||S.leader)&&(db.fowner||{})[f]===S.name));
+// Tệp xem được: của mình; Admin/BGH xem tất cả; Tổ trưởng xem tệp cả tổ; thành viên xem tệp biểu mẫu (do chủ thư mục, Admin, BGH đăng) trong thư mục được chia sẻ
+const canView=i=>{if(!S)return false;if(S.role=='admin'||S.role=='bgh'||i.by===S.name)return true;const o=ud(i.by);if(S.leader&&S.team&&o&&o.team===S.team)return true;
+ if(inShare(i.folder))return i.by===(db.fowner||{})[shRoot(i.folder)]||!!(o&&(o.role=='admin'||o.role=='bgh'));return false};
+const normDb=d=>{d=d||{};d.folders=d.folders||[];d.items=d.items||[];d.fowner=d.fowner||{};d.share=d.share||{};d.track=d.track||{};return d};
+// Nhận dữ liệu đã được máy chủ lọc theo quyền của người đang đăng nhập
+function applyBundle(b){if(!b)return;
+ if(b.me&&S){S={...S,...b.me,mc:!!b.me.mc};saveS()}
+ if(b.mc)return;
+ if(b.db)db=normDb(b.db);
+ if(b.dir){UD={};b.dir.forEach(u=>UD[u.name]=u);RT=b.retired||{}}
+ if(b.notes){NT={notes:b.notes};NT_T=Date.now()}}
+function applyUsers(d){UD={};(d.users||[]).forEach(u=>UD[u.name]=u);RT=d.retired||{}}
+const chkPw=p=>{if(p.length<8||p===DEF)throw new Error('Mật khẩu tối thiểu 8 ký tự và khác mật khẩu mặc định.')};
+const te=new TextEncoder(),bin=b=>btoa(String.fromCharCode(...new Uint8Array(b))),b2u=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+// Mật khẩu được băm ngay trên máy (PBKDF2) trước khi gửi đi. Máy chủ chỉ nhận và lưu bản băm, không bao giờ thấy mật khẩu gốc.
+async function kd(user,pw){const k=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveBits']);return bin(await crypto.subtle.deriveBits({name:'PBKDF2',salt:te.encode('filecloud|'+String(user).toLowerCase()),iterations:100000,hash:'SHA-256'},k,256))}
+// Mật khẩu ban đầu (trùng tên đăng nhập) không phân biệt hoa thường
+const npw=(n,p)=>p.toLowerCase()===String(n).toLowerCase()?p.toLowerCase():p;
+function expire(msg){S=null;try{sessionStorage.removeItem('khs')}catch(e){}BCclear();db=normDb({});UD={};RT={};NT={notes:[]};F={};showF=false;lockModal=false;render();modal('login');toast(msg||'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.')}
+// Gọi máy chủ. Mọi quyền hạn đều được kiểm tra ở máy chủ, giao diện chỉ để ẩn hiện nút.
+let BZ=0;const busy=d=>{BZ+=d;const e=$('#busy');if(e)e.style.display=BZ>0?'block':'none'};
+const rpc=async(a,x)=>{busy(1);try{return await rpc0(a,x)}finally{busy(-1)}};
+async function rpc0(a,x){
+ if(!API){modal('set');throw new Error('Chưa cài địa chỉ máy chủ.')}
+ let r,j;
+ try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({a,t:S&&S.token,...x})})}
+ catch(e){APIBAD=true;throw new Error('Không kết nối được máy chủ. Hãy kiểm tra mạng rồi thử lại.')}
+ try{j=await r.json()}catch(e){APIBAD=true;throw new Error('Máy chủ không trả lời đúng. Admin hãy kiểm tra địa chỉ máy chủ và cách triển khai (Ai có quyền truy cập: Bất kỳ ai).')}
+ APIBAD=false;
+ if(!j||!j.ok){const er=new Error((j&&j.e)||'Lỗi máy chủ');er.code=j&&j.c;if(er.code=='auth'&&S)expire(er.message);throw er}
+ return j.d}
+const retry=async(fn,n=3)=>{for(let k=1;;k++){try{return await fn()}catch(e){if(k>=n||(e.code&&e.code!='server'&&e.code!='busy'))throw e;await new Promise(r=>setTimeout(r,800*k))}}};
+const getUsers=async()=>{const d=await rpc('users.list');applyUsers(d);return d};
+// ===== Tệp: tải về từng phần từ máy chủ, ghép thành Blob trong trình duyệt =====
+const BC=new Map();let BCB=0;
+const MIME={pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp'};
+function BCclear(){BC.forEach(v=>URL.revokeObjectURL(v.url));BC.clear();BCB=0}
+function BCput(k,blob){const o=BC.get(k);if(o){URL.revokeObjectURL(o.url);BCB-=o.blob.size;BC.delete(k)}
+ const v={blob,url:URL.createObjectURL(blob)};BC.set(k,v);BCB+=blob.size;
+ for(const [kk,vv] of BC){if(BCB<=60*1048576||kk===k)break;URL.revokeObjectURL(vv.url);BCB-=vv.blob.size;BC.delete(kk)}return v}
+async function fileBlob(i,prog){const c=BC.get(i.id);if(c)return c;
+ const d0=await retry(()=>rpc('file.get',{id:i.id,part:0})),np=d0.np,parts=new Array(np);parts[0]=b2u(d0.data);let nx=1,dn=1,fail=null;if(prog)prog(1,np);
+ const wk=async()=>{while(!fail){const k=nx++;if(k>=np)return;try{const d=await retry(()=>rpc('file.get',{id:i.id,part:k}));parts[k]=b2u(d.data);dn++;if(prog)prog(dn,np)}catch(e){fail=e}}};
+ await Promise.all(Array.from({length:Math.min(3,Math.max(0,np-1))},wk));if(fail)throw fail;
+ return BCput(i.id,new Blob(parts,{type:MIME[ext(i.name)]||'application/octet-stream'}))}
+async function officePdf(i){const k=i.id+'#pdf',c=BC.get(k);if(c)return c;const d=await rpc('file.preview',{id:i.id});return BCput(k,new Blob([b2u(d.data)],{type:'application/pdf'}))}
+const fidOf=i=>i.fid||((itemOf(i.id)||{}).fid)||'';
+const gdl=f=>'https://drive.usercontent.google.com/download?id='+encodeURIComponent(f)+'&export=download&confirm=t';
+function frameDl(u){const f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(()=>f.remove(),60000)}
+async function dlFile(i){const fid=fidOf(i);if(fid){frameDl(gdl(fid));toast('Đang tải '+i.name+'… (xem thanh tải xuống của trình duyệt)');return}
+ toast('Đang tải '+i.name+'…');
+ try{const b=await fileBlob(i,(k,n)=>{if(n>1)toast('Đang tải '+i.name+' (phần '+k+'/'+n+')')});impDownload(b.blob,i.name);toast('Đã tải xuống '+i.name)}catch(e){toast(e.message)}}
+const PREV=['pdf','png','jpg','jpeg','docx','pptx','xlsx','doc','ppt','xls'];
+function openItem(x){if(!x.fid)x={...x,fid:fidOf(x)};if(PREV.includes(ext(x.name)))modal('pv',x);else dlFile(x)}
+let PVID='';
+async function pvLoad(x){const id=PVID=x.id,e=ext(x.name),box=()=>PVID===id&&$('#pvb'),img=['png','jpg','jpeg'].includes(e),fid=fidOf(x);
+ if(fid){const b=box();if(b)b.outerHTML=`<iframe src="https://drive.google.com/file/d/${encodeURIComponent(fid)}/preview" allow="autoplay"></iframe>`;return}
+ try{const u=(img||e=='pdf'?await fileBlob(x):await officePdf(x)).url,b=box();if(!b)return;b.outerHTML=img?`<img src="${u}">`:`<iframe src="${u}"></iframe>`}
+ catch(er){const b=box();if(b){b.textContent=er.message;b.style.color='#ff8b8b'}}}
+let THQ=Promise.resolve();
+function loadThumbs(){document.querySelectorAll('img[data-th]').forEach(im=>{const id=im.dataset.th,c=BC.get(id);if(c){im.src=c.url;return}
+ if(im.dataset.q)return;im.dataset.q=1;const it=itemOf(id);if(!it)return;
+ if(it.fid){im.src='https://drive.google.com/thumbnail?id='+encodeURIComponent(it.fid)+'&sz=w'+Math.min(800,Math.max(100,(D.sz||100)*2));return}
+ THQ=THQ.then(async()=>{try{if(!document.body.contains(im))return;im.src=(await fileBlob(it)).url}catch(e){}})})}
+const signIn=(u,b)=>{S=u;defF={...DEF0};F={...defF};showF=true;saveS();close();toast('Xin chào '+u.name);if(b){applyBundle(b);render();checkNotes();return Promise.resolve()}return load()};
+async function doLogin(n,p){
+ if(!n||!p)throw new Error('Nhập tên đăng nhập và mật khẩu');
+ let d;try{d=await rpc('login',{user:n,pw:await kd(n,npw(n,p))})}catch(e){if(e.code=='setup'){modal('setup');return}throw e}
+ await signIn({...d.me,token:d.token},d.bundle);
+ if(S&&S.mc){lockModal=true;modal('pwforce')}}
+async function doSetup(code,p1,p2){
+ if(!code)throw new Error('Hãy nhập mã thiết lập');chkPw(p1);if(p1!==p2)throw new Error('Hai mật khẩu không khớp');
+ const d=await rpc('setup',{code,pw:await kd('admin',p1)});await signIn({...d.me,token:d.token})}
+async function doPw(o,n,n2){chkPw(n);if(n!==n2)throw new Error('Hai mật khẩu không khớp');if(n.toLowerCase()===S.name.toLowerCase())throw new Error('Mật khẩu mới không được trùng tên đăng nhập.');
+ const d=await rpc('pw.change',{old:await kd(S.name,npw(S.name,o)),pw:await kd(S.name,n)});S={...S,token:d.token,mc:false};saveS();close();toast('Đã đổi mật khẩu')}
+const dataNames=()=>{const t=new Set();Object.values(db.fowner||{}).forEach(n=>t.add(String(n).toLowerCase()));(db.items||[]).forEach(i=>{if(i.by)t.add(String(i.by).toLowerCase())});return t};
+async function askDelete(id){
+ const own=Object.keys(db.fowner||{}).filter(p=>db.fowner[p]===id),sub=p=>own.some(o=>p===o||p.startsWith(o+'/')),
+  its=db.items.filter(x=>x.by===id||sub(x.folder)),mine=db.items.filter(x=>x.by===id).length,oth=its.length-mine;
+ if(!own.length&&!its.length){if(!await dlg({title:'Xóa tài khoản',msg:'Xóa tài khoản <b>'+esc(id)+'</b>? Người này chưa có thư mục hay tệp nào và sẽ không đăng nhập được nữa.',ok:'Xóa',danger:1}))return;return finishDelete(id,'none')}
+ const me=UD[id]||{},c=Object.values(UD).filter(u=>u.name!==id&&!u.lock),def=c.find(u=>me.team&&u.team===me.team&&u.leader)||c.find(u=>u.role=='admin')||c[0];
+ const opts=c.map(u=>'<option value="'+esc(u.name)+'"'+(def&&u.name===def.name?' selected':'')+'>'+esc(u.name+(u.fn?' – '+u.fn:'')+' ('+info(u)+')')+'</option>').join('');
+ const html='<label class="rad"><input type="radio" name="dm" value="keep" checked><span><b>Giữ lại dữ liệu</b><small>Admin và BGH vẫn xem được. Tên đăng nhập này sẽ không được dùng lại cho người khác.</small></span></label>'
+  +'<label class="rad"><input type="radio" name="dm" value="move"><span><b>Chuyển cho người khác</b><small>Thư mục và tệp thuộc về tài khoản nhận, người nhận toàn quyền như dữ liệu của mình.</small></span></label>'
+  +'<select id="dmT" disabled>'+opts+'</select>'
+  +'<label class="rad"><input type="radio" name="dm" value="purge"><span><b>Xóa toàn bộ dữ liệu</b><small>Xóa vĩnh viễn thư mục và tệp của người này, không thể hoàn tác.</small></span></label>';
+ const r=await dlg({title:'Xóa tài khoản',msg:'Tài khoản <b>'+esc(id)+'</b> đang có <b>'+own.length+' thư mục</b> và <b>'+its.length+' tệp</b>'+(oth?' (trong đó '+oth+' tệp do người khác nộp vào thư mục của người này)':'')+'. Bạn muốn xử lý dữ liệu này thế nào?',html,ok:'Tiếp tục',collect:md=>({mode:md.querySelector('[name=dm]:checked').value,to:(md.querySelector('#dmT')||{}).value})});
+ if(!r)return;
+ if(r.mode=='move'&&!r.to)throw new Error('Chưa có tài khoản nào để nhận dữ liệu.');
+ if(r.mode=='purge'&&!await dlg({title:'Xóa vĩnh viễn dữ liệu',msg:'Xóa tài khoản <b>'+esc(id)+'</b> cùng <b>'+own.length+' thư mục</b> và <b>'+its.length+' tệp</b>? Không thể hoàn tác.',ok:'Xóa vĩnh viễn',danger:1}))return;
+ return finishDelete(id,r.mode,r.to)}
+async function finishDelete(id,mode,to){
+ const d=await rpc('user.delete',{name:id,mode,to});applyUsers(d);applyBundle(d.bundle);modal('users',d);render();
+ toast(mode=='move'?'Đã xóa tài khoản và chuyển dữ liệu cho '+to:mode=='purge'?'Đã xóa tài khoản và toàn bộ dữ liệu':'Đã xóa tài khoản')}
+// ===== Thông báo / ghi chú (Admin, BGH, Tổ trưởng gửi; người nhận thấy khi đăng nhập và xem lại trong mục Thông báo) =====
+let NT={notes:[]},NC={sel:new Set(),flt:'',q:''},NP=[],NPOP=new Set(),NTAB='in',NT_T=0;
+const canNote=()=>!!S&&(S.role=='admin'||S.role=='bgh'||!!S.leader);
+const rcpPool=()=>Object.values(UD).filter(u=>S&&u.name!==S.name&&!u.lock&&(S.role=='admin'||S.role=='bgh'||(u.role=='user'&&u.team&&u.team===S.team))).sort((a,b)=>(a.team||'~').localeCompare(b.team||'~','vi')||a.name.localeCompare(b.name,'vi'));
+const unreadN=()=>S?NT.notes.filter(n=>(n.to||[]).includes(S.name)&&!(n.seen&&n.seen[S.name])):[];
+const kindInfo={info:['r-gv','Thông báo'],fix:['r-admin','Cần điều chỉnh'],ok:['r-leader','Đã duyệt']};
+function updBadge(){const b=$('#nBadge');if(!b)return;const n=unreadN().length;b.style.display=S&&n?'':'none';b.textContent=n?(n>99?'99+':n):''}
+const dayLbl=d=>{const t=new Date(d),n=new Date(),k=x=>x.toDateString();if(k(t)==k(n))return 'Hôm nay';const y=new Date(n);y.setDate(n.getDate()-1);if(k(t)==k(y))return 'Hôm qua';return t.toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})};
+function noteCard(n,mode,isNew){
+ const ki=kindInfo[n.kind]||kindInfo.info,ref=n.ref&&n.ref.ok!==false?n.ref:null;
+ const fl=n.ref?(ref?'<div class="nact"><button class="btn" data-open="'+esc(n.ref.id)+'" data-nm="'+esc(n.ref.name)+'" data-fid="'+esc(n.ref.fid||'')+'">'+ic('eye')+'Mở tệp: '+esc(n.ref.name)+'</button></div>':'<div class="nm2">Tệp liên quan: '+esc(n.ref.name)+' (đã bị xóa)</div>'):'';
+ let ex='';
+ if(mode=='out'){const seen=n.seen||{},c=(n.to||[]).filter(u=>seen[u]).length;
+  ex='<details><summary>Gửi tới '+(n.to||[]).length+' người · '+c+' đã xem</summary>'+(n.to||[]).map(u=>'<div>'+(seen[u]?'✓':'○')+' '+esc(u)+((UD[u]||{}).fn?' – '+esc(UD[u].fn):'')+(seen[u]?' <small>('+fdate(seen[u])+')</small>':'')+'</div>').join('')+'</details><div class="nact"><button class="btn d" data-a="noteDel" data-id="'+esc(n.id)+'">Xóa</button></div>'}
+ return '<div class="nt'+(isNew?' new':'')+'"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="rb '+ki[0]+'">'+ki[1]+'</span><h4>'+esc(n.title)+'</h4>'+(isNew?'<span class="rb r-warn">Mới</span>':'')+'</div><div class="nm2">'+(mode=='out'?'Gửi lúc ':'Từ <b style="color:var(--tx)">'+esc(n.by)+'</b>'+(n.byRole?' ('+esc(n.byRole)+')':'')+' · ')+fdate(n.date)+'</div>'+(n.body?'<div class="nb">'+esc(n.body)+'</div>':'')+fl+ex+'</div>'}
+function noteListHtml(list,mode,newSet){
+ if(!list.length)return '<div class="empty" style="padding:28px">'+(mode=='in'?'Chưa có thông báo nào gửi cho bạn.':'Bạn chưa gửi thông báo nào.')+'</div>';
+ let out='',last='';
+ list.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(n=>{const k=new Date(n.date).toDateString();if(k!=last){last=k;out+='<div class="ntd">'+esc(dayLbl(n.date))+'</div>'}out+=noteCard(n,mode,newSet&&newSet.has(n.id))});return out}
+const rcVis=()=>rcpPool().filter(u=>(!NC.flt||(NC.flt=='__none'?!u.team:u.team===NC.flt))&&(!NC.q||(u.name+' '+(u.fn||'')).toLowerCase().includes(NC.q)));
+function rcListHtml(){
+ const pool=rcVis();
+ return pool.map(u=>'<label><input type="checkbox" class="rc" value="'+esc(u.name)+'"'+(NC.sel.has(u.name)?' checked':'')+'><span style="color:var(--tx)">'+esc(u.name)+(u.fn?' – '+esc(u.fn):'')+'</span><small>'+esc(info(u))+'</small></label>').join('')||'<div class="empty" style="padding:14px">Không có người nhận phù hợp.</div>'}
+function rcFileOpts(){const cur=($('#nf')||{}).value||'',l=db.items.filter(i=>NC.sel.has(i.by)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,150);
+ return '<option value="">— Không đính kèm —</option>'+l.map(i=>'<option value="'+esc(i.id)+'"'+(i.id===cur?' selected':'')+'>'+esc(i.name)+' ('+esc(i.by)+')</option>').join('')}
+function rcRefresh(){const l=$('#rcl');if(l)l.innerHTML=rcListHtml();const c=$('#rcn');if(c)c.textContent='Đã chọn '+NC.sel.size+' người';const f=$('#nf');if(f)f.innerHTML=rcFileOpts()}
+function noteModal(k,md){
+ md.className='md wide';
+ if(k=='notePop')return '<h3>Bạn có '+NP.length+' thông báo mới</h3><div class="nlist">'+noteListHtml(NP,'in',new Set(NP.map(n=>n.id)))+'</div><div class="fl"><button class="btn p" data-a="notePopOk">Đã đọc, đóng</button></div>';
+ if(k=='noteNew'){
+  const teams=[...new Set(rcpPool().map(u=>u.team||'__none'))],sw=S.role=='admin'||S.role=='bgh';
+  return '<h3>Tạo thông báo</h3><label>Loại<select id="nk"><option value="info">Thông báo</option><option value="fix">Cần điều chỉnh (góp ý kế hoạch bài dạy)</option><option value="ok">Đã duyệt</option></select></label><label>Tiêu đề<input type="text" id="nt1" maxlength="120" placeholder="Ví dụ: KHBD tuần 5 cần chỉnh sửa"></label><label>Nội dung ghi chú<textarea id="nb1" rows="3" placeholder="Những điểm cần điều chỉnh hoặc nội dung thông báo"></textarea></label>'
+   +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><b style="color:var(--tx);font-size:13.5px">Người nhận</b><span id="rcn" style="color:var(--mu);font-size:12.5px">Đã chọn 0 người</span></div>'
+   +'<div class="frow"><input type="text" id="rcq" placeholder="Tìm theo tên..." style="flex:1;min-width:140px">'+(sw&&teams.length>1?'<select id="nrf" style="flex:1"><option value="">Tất cả tổ chuyên môn</option>'+teams.map(t=>t=='__none'?'<option value="__none">Chưa phân tổ</option>':'<option>'+esc(t)+'</option>').join('')+'</select>':'')+'<button class="btn" data-a="noteAll">Chọn tất cả đang hiển thị</button><button class="btn" data-a="noteNone">Bỏ chọn</button></div>'
+   +'<div class="rcp" id="rcl">'+rcListHtml()+'</div><label>Tệp liên quan (không bắt buộc, liệt kê tệp của người nhận đã chọn)<select id="nf">'+rcFileOpts()+'</select></label><div class="fl"><button class="btn" data-a="notes">Quay lại</button><button class="btn p" data-a="noteSend">Gửi</button></div>'}
+ const inb=NT.notes.filter(n=>(n.to||[]).includes(S.name)),out=NT.notes.filter(n=>n.by===S.name),nw=new Set(unreadN().map(n=>n.id)),cn=canNote(),tab=cn?NTAB:'in';
+ return '<h3>Thông báo</h3>'+(cn?'<div class="tabs"><button class="tab'+(tab=='in'?' on':'')+'" data-a="noteTab" data-id="in">Đã nhận ('+inb.length+')</button><button class="tab'+(tab=='out'?' on':'')+'" data-a="noteTab" data-id="out">Đã gửi ('+out.length+')</button></div><div class="frow"><button class="btn p" data-a="noteNew">'+ic('plus')+'Tạo thông báo</button></div>':'')
+  +'<div class="nlist">'+noteListHtml(tab=='in'?inb:out,tab,tab=='in'?nw:null)+'</div><div class="fl"><button class="btn" data-a="x">Đóng</button></div>'}
+function checkNotes(){
+ if(!S||S.mc||lockModal||$('#ov').classList.contains('on'))return;
+ const u=unreadN().filter(n=>!NPOP.has(S.name+':'+n.id));if(!u.length)return;
+ u.forEach(n=>NPOP.add(S.name+':'+n.id));NP=u;modal('notePop');lockModal=true}
+async function markSeen(ids){
+ if(!S||!ids.length)return;const me=S.name,now=new Date().toISOString();
+ NT.notes.forEach(n=>{if(ids.includes(n.id)){n.seen=n.seen||{};n.seen[me]=now}});updBadge();
+ try{const d=await rpc('notes.seen',{ids});NT={notes:d.notes};updBadge()}catch(e){toast('Chưa lưu được trạng thái đã đọc: '+e.message)}}
+async function sendNote(){
+ if(!canNote())throw new Error('Bạn không có quyền gửi thông báo.');
+ const title=$('#nt1').value.trim(),body=$('#nb1').value.trim(),kind=$('#nk').value,rid=$('#nf').value,ok=new Set(rcpPool().map(u=>u.name)),to=[...NC.sel].filter(u=>ok.has(u));
+ if(!to.length)throw new Error('Hãy chọn ít nhất một người nhận.');if(!title)throw new Error('Hãy nhập tiêu đề.');
+ const bt=document.querySelector('[data-a=noteSend]');bt.disabled=true;
+ try{const d=await rpc('notes.send',{title,body,kind,to,ref:rid||undefined});NT={notes:d.notes}}catch(e){bt.disabled=false;throw e}
+ NTAB='out';modal('notes');toast('Đã gửi thông báo cho '+to.length+' người')}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S&&Date.now()-NT_T>120000)load()});
+
+const fdeny=f=>{if(!S){modal('login');return true}if(S.role!='admin'&&(db.fowner||{})[f]!==S.name){toast('Bạn chỉ được sửa/xóa thư mục do mình tạo.');return true}return false};
+const deny=i=>{if(!S){modal('login');return true}if(S.role!='admin'&&i.by!==S.name){toast('Bạn chỉ được sửa/xóa tệp do mình tải lên.');return true}return false};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3000)};
+const fsize=n=>n>=1073741824?(n/1073741824).toFixed(2)+' GB':n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const fdate=d=>new Date(d).toLocaleString('vi-VN',{dateStyle:'medium',timeStyle:'short'});
+const par=f=>f.includes('/')?f.slice(0,f.lastIndexOf('/')):'';
+const ext=n=>(n.split('.').pop()||'').toLowerCase();
+const COL={pdf:['#ff5a6a','#3a1f2d'],doc:['#5aa0ff','#1b2f57'],docx:['#5aa0ff','#1b2f57'],ppt:['#ff9a4d','#3d2a1c'],pptx:['#ff9a4d','#3d2a1c'],xls:['#3ecf8e','#16382f'],xlsx:['#3ecf8e','#16382f'],zip:['#ffc233','#3a3119'],rar:['#ffc233','#3a3119']};
+const badge=n=>{const e=ext(n),c=COL[e]||['#9aa8c7','#26314d'];return `<div class="fi" style="color:${c[0]};background:${c[1]}">${ic('file')}</div>`};
+
+async function load(){
+ if(S){try{applyBundle((await rpc('sync')).bundle)}catch(e){if(e.code!='auth')toast(e.message||'Không tải được dữ liệu')}}
+ if(!S){db=normDb({});UD={};RT={};NT={notes:[]}}
+ render();checkNotes()
+}
+
+// Thao tác ghi (đổi tên, xóa, tạo thư mục, chia sẻ): màn hình cập nhật NGAY, yêu cầu gửi lên máy chủ chạy nền; lỗi thì tự hoàn lại.
+let PEND=0,OPQ=Promise.resolve(),LASTB=null;
+async function act(fn,ok,opt,gc){
+ if(!can()){toast('Hãy đăng nhập để chỉnh sửa.');return modal('login')}
+ if(!opt){
+  let full=true;
+  try{const d=await fn();if(d&&d.bundle){applyBundle(d.bundle);full=false}if(ok)toast(ok)}catch(e){toast('Lỗi: '+e.message)}
+  sel.clear();if(full)await load();else{render();checkNotes()}
+  return}
+ try{opt()}catch(e){}
+ sel.clear();render();if(ok)toast(ok);
+ PEND++;
+ OPQ=OPQ.then(async()=>{let err=null;
+  try{const d=await fn();if(d&&d.bundle)LASTB=d.bundle}catch(e){err=e}
+  PEND--;
+  if(err){toast('Lỗi: '+err.message);LASTB=null;if(!PEND)await load();return}
+  if(!PEND&&LASTB){const b=LASTB;LASTB=null;applyBundle(b);render();checkNotes()}
+  if(gc)rpc0('gc',{}).catch(()=>{})})}
+
+
+const thumb=i=>['png','jpg','jpeg','gif','webp'].includes(ext(i.name))&&D.th&&(i.fid||i.size<=800*1024)?`<div class="fi" style="width:${D.sz}px;height:${D.sz}px;padding:0;overflow:hidden;background:#101b33"><img data-th="${esc(i.id)}" alt="" style="width:100%;height:100%;object-fit:cover"></div>`:badge(i.name);
+// Đặt menu thả xuống luôn nằm trọn trong màn hình: tự lật lên trên khi sát đáy, thu nhỏ và cuộn nếu thiếu chỗ
+function placeMenu(r){const box=$('#menuBox');box.style.maxHeight='';box.style.display='block';
+ const vw=innerWidth,vh=innerHeight,w=box.offsetWidth,h=box.offsetHeight,below=vh-r.bottom-12,above=r.top-12;let top;
+ if(h<=below)top=r.bottom+4;
+ else if(h<=above)top=r.top-h-4;
+ else if(below>=above){box.style.maxHeight=Math.max(120,below)+'px';top=r.bottom+4}
+ else{box.style.maxHeight=Math.max(120,above)+'px';top=Math.max(8,r.top-box.offsetHeight-4)}
+ box.style.top=top+'px';box.style.left=Math.min(Math.max(8,r.right-w),Math.max(8,vw-w-8))+'px'}
+['scroll','resize'].forEach(ev=>addEventListener(ev,e=>{const b=$('#menuBox');if(e.target!==b)b.style.display='none'},true));
+// Hướng dẫn theo vai trò
+const HC=[["Tải tệp lên","Mở thư mục cần lưu, bấm <b>Tải lên</b> (hoặc kéo thả tệp vào trang), chọn tệp, chọn môn và lớp nếu muốn rồi bấm Tải lên. Mỗi tệp tối đa 50 MB. Tệp lớn được tải lên từng phần nên cần chờ thêm vài giây."],["Tạo thư mục","Bấm <b>Thư mục mới</b> và đặt tên. Tạo được ở ngoài cùng hoặc bên trong thư mục của chính bạn."],["Xem và tải về","Bấm tên tệp hoặc <b>Xem trước</b> để xem, bấm <b>Tải xuống</b> để lưu về máy."],["Đổi tên, xóa","Bấm <b>⋮</b> cạnh tệp hoặc thư mục, chọn Đổi tên hoặc Xóa. Chỉ làm được với mục do bạn tạo."],["Bộ lọc mặc định","Khi đăng nhập, trang mặc định chỉ hiện thư mục và tệp do bạn tạo (Nguồn: Của tôi). Muốn xem thư mục được chia sẻ hoặc toàn bộ nội dung bạn có quyền xem, bấm icon phễu rồi chọn <b>Nguồn: Tất cả</b>."],["Tìm nhanh","Thanh công cụ có kính lúp (tìm trong cả kho), phễu (lọc theo nguồn: của tôi hoặc từng khối, loại tệp và môn học. Lọc theo tên thì chỉ áp dụng trong thư mục đang mở, lọc theo ba tiêu chí còn lại thì tìm trong cả kho), hai mũi tên (sắp xếp) và thanh trượt (hình thu nhỏ)."],["Đổi mật khẩu","Chọn <b>Đổi mật khẩu</b> ở cột bên trái. Quên mật khẩu thì liên hệ Admin để được đặt lại."]];
+const HELP={
+guest:{intro:"Bạn chưa đăng nhập nên chưa xem được tệp nào.",steps:[["Đăng nhập","Bấm <b>Đăng nhập</b> ở cột bên trái, nhập tên đăng nhập và mật khẩu do Admin cấp."],["Chưa có tài khoản?","Liên hệ Admin để được tạo tài khoản. Trang không có chức năng tự đăng ký."],["Sau khi đăng nhập","Mở lại mục Hướng dẫn để xem hướng dẫn riêng cho vai trò của bạn."]]},
+gv:{intro:"Bạn thấy và quản lý được tệp, thư mục do chính mình tạo, cùng các thư mục mà BGH hoặc tổ trưởng chia sẻ cho khối của bạn.",
+ can:["Tải lên, xem, tải về, đổi tên và xóa tệp của mình","Tạo, đổi tên và xóa thư mục của mình","Vào thư mục được chia sẻ cho khối để lấy biểu mẫu và nộp tài liệu"],
+ steps:[["Nộp tài liệu theo yêu cầu","Mở thư mục được chia sẻ (có nhãn “Của …” và “Chia sẻ: khối của bạn”), tải biểu mẫu về, hoàn thành rồi bấm <b>Tải lên</b> để nộp."],["Xem thông báo và góp ý","Khi đăng nhập, thông báo mới từ Ban giám hiệu, tổ trưởng hoặc Admin hiện ngay trên màn hình. Đọc xong bấm <b>Đã đọc, đóng</b>. Muốn xem lại, bấm <b>Thông báo</b> ở menu bên trái, thông báo được xếp theo ngày gửi. Thông báo màu đỏ <b>Cần điều chỉnh</b> là góp ý về kế hoạch bài dạy của bạn."]],
+ notes:["Màu thư mục: vàng là thư mục do bạn tạo, xanh là thư mục của người khác (được chia sẻ cho bạn), đỏ là thư mục yêu cầu nộp bài.","Bạn không thấy tệp của giáo viên khác, kể cả trong thư mục chung.","Biểu mẫu do người khác đăng chỉ xem và tải về, không sửa hoặc xóa được.","Trong thư mục chia sẻ của người khác, bạn chỉ tải tệp lên, không tạo được thư mục con.","Tên khối của bạn do Admin gán. Nếu không thấy thư mục cần thiết, hãy báo Admin kiểm tra."]},
+leader:{intro:"Ngoài quyền của giáo viên, bạn xem được tệp và thư mục của các thành viên cùng tổ, và chia sẻ thư mục cho khối của mình để phát biểu mẫu, thu tài liệu.",
+ can:["Mọi thao tác của giáo viên","Xem tệp và thư mục của thành viên cùng tổ","Chia sẻ thư mục của mình cho khối bạn phụ trách"],
+ steps:[["Phát biểu mẫu và thu tài liệu","Tạo thư mục (ví dụ “Biểu mẫu tuần 5”) và tải biểu mẫu vào. Bấm <b>⋮</b> cạnh thư mục, chọn <b>Chia sẻ cho khối</b>, tích khối của bạn rồi Lưu. Thành viên sẽ thấy thư mục, tải biểu mẫu và nộp bài. Bạn xem được bài đã nộp của cả tổ. Nếu cần bắt buộc nộp, tích thêm ô <b>Yêu cầu nộp bài và theo dõi trạng thái nộp</b>."],["Ngừng chia sẻ","Mở lại <b>Chia sẻ cho khối</b>, bỏ chọn hết rồi Lưu."],["Xem ai đã nộp, ai chưa nộp","Chỉ thư mục đã chia sẻ và được tích ô <b>Yêu cầu nộp bài</b> mới có mục này (nếu chưa tích, mở lại <b>Chia sẻ cho khối</b> để tích). Bấm <b>⋮</b> cạnh thư mục, chọn <b>Trạng thái nộp bài</b>. Danh sách thành viên trong khối hiện kèm Đã nộp hoặc Chưa nộp, số tệp và lần nộp cuối. Bấm <b>Sao chép danh sách chưa nộp</b> để nhắc nhở."],["Gửi thông báo, ghi chú duyệt bài","Bấm <b>Thông báo</b> ở menu trái rồi <b>Tạo thông báo</b>. Chọn loại (Thông báo, Cần điều chỉnh, Đã duyệt), nhập tiêu đề, ghi chú, chọn người nhận trong tổ của bạn, đính kèm tệp kế hoạch bài dạy nếu cần rồi bấm <b>Gửi</b>. Người nhận thấy ngay khi đăng nhập. Thẻ <b>Đã gửi</b> cho biết ai đã xem."]],
+ notes:["Màu thư mục: vàng là thư mục do bạn tạo, xanh là thư mục của người khác (được chia sẻ cho bạn), đỏ là thư mục yêu cầu nộp bài.","Bạn chỉ chia sẻ được cho khối của mình. Thành viên không thấy bài của nhau.","Bạn chỉ sửa, xóa được tệp do mình tải lên.","Xóa thư mục của mình sẽ xóa cả tệp thành viên đã nộp bên trong. Hộp thoại sẽ báo số tệp trước khi xóa.","Khối và chức tổ trưởng do Admin gán. Sai thì báo Admin."]},
+bgh:{intro:"Bạn xem được toàn bộ tệp và thư mục của mọi giáo viên, tạo thư mục và chia sẻ cho một hoặc nhiều khối.",
+ can:["Xem và tải về mọi tệp, mọi thư mục trong kho","Tải lên và tạo thư mục ở bất kỳ vị trí nào","Chia sẻ thư mục cho nhiều khối cùng lúc, hoặc chọn <b>Tất cả</b>","Sửa, xóa tệp và thư mục do chính mình tạo"],
+ steps:[["Phát biểu mẫu hoặc thông báo cho các khối","Tạo thư mục, tải tệp vào, bấm <b>⋮</b> rồi <b>Chia sẻ cho khối</b>, tích các khối (hoặc Tất cả) và Lưu. Giáo viên trong các khối đó xem được tệp bạn đăng và nộp bài vào thư mục."],["Xem bài nộp","Mở thư mục để thấy bài của từng người. Tên người tải và tổ hiện cạnh tệp. Dùng kính lúp (tìm theo tên người tải) hoặc bộ lọc theo khối để tìm nhanh. Muốn biết ai chưa nộp, thư mục phải được chia sẻ và tích ô <b>Yêu cầu nộp bài</b>, rồi bấm <b>⋮</b> cạnh thư mục và chọn <b>Trạng thái nộp bài</b>."],["Gửi thông báo, ghi chú duyệt bài","Bấm <b>Thông báo</b> ở menu trái rồi <b>Tạo thông báo</b>. Chọn loại (Thông báo, Cần điều chỉnh, Đã duyệt), nhập tiêu đề, ghi chú, chọn người nhận (có thể chọn cả tổ hoặc tất cả), đính kèm tệp kế hoạch bài dạy nếu cần rồi bấm <b>Gửi</b>. Người nhận thấy ngay khi đăng nhập. Thẻ <b>Đã gửi</b> cho biết ai đã xem."]],
+ notes:["Màu thư mục: vàng là thư mục do bạn tạo, xanh là thư mục của người khác (được chia sẻ cho bạn), đỏ là thư mục yêu cầu nộp bài.","Bạn xem được tất cả nhưng chỉ sửa, xóa được tệp và thư mục do mình tạo.","Bạn không quản lý tài khoản. Cần thêm hoặc đổi quyền tài khoản thì liên hệ Admin."]},
+admin:{intro:"Bạn có toàn quyền: xem, sửa, xóa mọi tệp và thư mục, chia sẻ mọi thư mục và quản lý tài khoản.",
+ can:["Xem, sửa, xóa mọi tệp và thư mục","Chia sẻ bất kỳ thư mục nào, kể cả thư mục cũ chưa có chủ","Thêm tài khoản, phân quyền, đặt lại mật khẩu, xóa tài khoản"],
+ steps:[["Thêm tài khoản","Bấm nút <b>Thêm tài khoản</b> dưới thẻ tài khoản, nhập tên đăng nhập, mật khẩu (từ 8 ký tự), vai trò và tổ chuyên môn. Tích “Phân công làm tổ trưởng” nếu cần. Báo mật khẩu cho người dùng, họ tự đổi ở mục Đổi mật khẩu. Muốn tạo nhiều tài khoản cùng lúc, chọn thẻ <b>Từ file Excel</b>: bấm Tải file mẫu, điền Họ và Tên, Chức vụ, Tổ trưởng và Tổ chuyên môn của từng người (một file có thể gồm nhiều tổ; giáo viên bắt buộc có tổ, Ban giám hiệu thì để trống), rồi chọn file. Tên đăng nhập tự tạo (Đoàn Thanh Cang thành Cangdt), mật khẩu ban đầu giống tên đăng nhập và người dùng phải đổi ở lần đăng nhập đầu tiên."],["Quản lý tài khoản","Mở <b>Quản lý tài khoản</b> để xem danh sách, lọc theo tổ, bấm <b>Phân quyền</b> (đổi vai trò, tổ, tổ trưởng), <b>Đặt lại MK</b> hoặc <b>Xóa</b>. Màu nhãn: Admin đỏ, Ban giám hiệu tím, Tổ trưởng xanh ngọc, Giáo viên xanh dương."],["Khóa hoặc xóa tài khoản","<b>Khóa</b> dùng khi người dùng nghỉ tạm thời: họ không đăng nhập được nhưng dữ liệu giữ nguyên, bấm <b>Mở khóa</b> khi họ quay lại. Khi <b>Xóa</b> tài khoản đang có dữ liệu, bạn chọn: giữ lại dữ liệu, chuyển cho người khác (ví dụ tổ trưởng hoặc giáo viên thay thế) hoặc xóa toàn bộ dữ liệu. Tên đăng nhập còn dữ liệu sẽ không được tạo lại cho người khác."],["Chia sẻ thư mục","Bấm <b>⋮</b> rồi <b>Chia sẻ cho khối</b>. Thư mục cũ chưa có chủ chỉ Admin và BGH thấy cho tới khi bạn chia sẻ. Muốn theo dõi ai đã nộp, tích thêm ô <b>Yêu cầu nộp bài</b> khi chia sẻ rồi dùng <b>Trạng thái nộp bài</b> trong cùng menu."],["Gửi thông báo, ghi chú duyệt bài","Bấm <b>Thông báo</b> ở menu trái rồi <b>Tạo thông báo</b>. Chọn loại (Thông báo, Cần điều chỉnh, Đã duyệt), nhập tiêu đề, ghi chú, chọn người nhận (có thể chọn cả tổ hoặc tất cả), đính kèm tệp nếu cần rồi bấm <b>Gửi</b>. Người nhận thấy ngay khi đăng nhập và xem lại trong mục Thông báo. Thẻ <b>Đã gửi</b> cho biết ai đã xem."]],
+ notes:["Màu thư mục: vàng là thư mục do bạn tạo, xanh là thư mục của người khác (được chia sẻ cho bạn), đỏ là thư mục yêu cầu nộp bài.","Mọi quyền hạn được máy chủ Google kiểm tra, giáo viên không vượt quyền được dù có xem mã nguồn trang web.","Tệp được lưu riêng tư trong Google Drive của tài khoản Google đã cài máy chủ, thư mục “FileCloud - Du lieu (khong xoa)”. Không xóa, đổi tên hay chia sẻ thư mục này.","Quên mật khẩu Admin: mở dự án Apps Script, chạy hàm resetAdmin, lấy mã mới trong Nhật ký rồi đăng nhập tên admin để đặt mật khẩu mới.","Hãy chạy hàm installBackup một lần để bật sao lưu tự động mỗi đêm (giữ 14 ngày, trong thư mục backup).","Sai mật khẩu 5 lần sẽ bị tạm khóa 15 phút. Mở tệp cần vài giây vì được tải từ Google Drive."]}};
+function helpHtml(){const k=S?rk(S):['guest','Khách'],g=HELP[k[0]],li=a=>a.map(x=>'<li>'+x+'</li>').join(''),st=a=>'<ol>'+a.map(x=>'<li><b>'+x[0]+".</b> "+x[1]+'</li>').join('')+'</ol>';
+ return '<h3>Hướng dẫn dành cho '+(S?k[1]:'khách')+'</h3>'+(S?'<div>'+uBadges(S)+'</div>':'')+'<p>'+g.intro+'</p><div class="hg">'+(g.can?'<h4>Bạn có thể</h4><ul>'+li(g.can)+'</ul>':'')+(S?'<h4>Thao tác cơ bản</h4>'+st(HC):'')+'<h4>'+(S?'Dành riêng cho vai trò '+k[1]:'Các bước')+'</h4>'+st(g.steps)+(g.notes?'<h4>Lưu ý</h4><ul>'+li(g.notes)+'</ul>':'')+'</div><div class="fl"><button class="btn p" data-a="x">Đã hiểu</button></div>'}
+// ===== Nhập tài khoản từ file Excel (đọc .xlsx ngay trong trình duyệt, không cần thư viện ngoài) =====
+const TPL_B64='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';
+let IMP={rows:[],users:[]},lockModal=false;
+const fold=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/gi,'d').toLowerCase().replace(/\s+/g,' ').trim();
+const cleanName=t=>String(t==null?'':t).replace(/\s+/g,' ').trim();
+// Họ tên → tên đăng nhập: Tên + chữ cái đầu của họ và tên đệm. Ví dụ Đoàn Thanh Cang → Cangdt
+function genUser(full){const w=cleanName(full).split(' ').map(x=>fold(x).replace(/[^a-z0-9]/g,'')).filter(Boolean);if(!w.length)return '';
+ const last=w.pop();let u=last.charAt(0).toUpperCase()+last.slice(1)+w.map(x=>x[0]).join('');while(u.length<3)u+='1';return u.slice(0,30)}
+async function inflateRaw(u8){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(ds.readable).arrayBuffer())}
+async function unzip(buf){const dv=new DataView(buf),u8=new Uint8Array(buf),td=new TextDecoder();let e=-1;
+ for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--){if(dv.getUint32(i,true)==0x06054b50){e=i;break}}
+ if(e<0)throw new Error('Đây không phải tệp .xlsx hợp lệ.');
+ const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const out={};
+ for(let k=0;k<n;k++){if(dv.getUint32(p,true)!=0x02014b50)break;
+  const method=dv.getUint16(p+10,true),csz=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),off=dv.getUint32(p+42,true);
+  const name=td.decode(u8.subarray(p+46,p+46+nl)),st=off+30+dv.getUint16(off+26,true)+dv.getUint16(off+28,true);
+  out[name]={method,raw:u8.subarray(st,st+csz)};p+=46+nl+el+cl}
+ return out}
+async function readXlsx(buf){
+ if(typeof DecompressionStream=='undefined')throw new Error('Trình duyệt quá cũ, hãy dùng Chrome hoặc Edge bản mới.');
+ const z=await unzip(buf),P=new DOMParser(),tags=(d,t)=>[...d.getElementsByTagNameNS('*',t)];
+ const text=async n=>{const f=z[n];if(!f)return null;return new TextDecoder().decode(f.method==0?f.raw:await inflateRaw(f.raw))};
+ const xml=async n=>{const t=await text(n);return t?P.parseFromString(t,'application/xml'):null};
+ const wb=await xml('xl/workbook.xml');if(!wb)throw new Error('Không đọc được tệp Excel. Hãy dùng tệp .xlsx.');
+ const rels=await xml('xl/_rels/workbook.xml.rels'),sheets=tags(wb,'sheet');
+ const sh=sheets.find(x=>fold(x.getAttribute('name'))=='danh sach')||sheets[0];if(!sh)throw new Error('Tệp không có trang tính nào.');
+ const rid=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+ const rel=tags(rels,'Relationship').find(r=>r.getAttribute('Id')==rid);if(!rel)throw new Error('Không đọc được trang tính.');
+ let tg=rel.getAttribute('Target');tg=tg.startsWith('/')?tg.slice(1):'xl/'+tg.replace(/^\.\//,'');
+ const ss=await xml('xl/sharedStrings.xml'),strs=ss?tags(ss,'si').map(si=>tags(si,'t').map(t=>t.textContent).join('')):[];
+ const sx=await xml(tg);if(!sx)throw new Error('Không đọc được trang tính.');
+ const colIdx=ref=>{const m=/^[A-Z]+/.exec(ref||'');let n=0;if(m)for(const ch of m[0])n=n*26+ch.charCodeAt(0)-64;return n-1};
+ return tags(sx,'row').map(r=>{const row=[];tags(r,'c').forEach((c,k)=>{const ref=c.getAttribute('r'),i=ref?colIdx(ref):k,t=c.getAttribute('t');let v='';
+  if(t=='inlineStr')v=tags(c,'t').map(x=>x.textContent).join('');
+  else{const ve=tags(c,'v')[0];if(ve){v=ve.textContent;if(t=='s')v=strs[+v]||''}}
+  row[i]=v});return row})}
+async function impLoad(file){
+ const box=$('#impPrev');box.innerHTML='<div class="empty" style="padding:16px">Đang đọc tệp…</div>';
+ try{
+  if(!/\.xlsx$/i.test(file.name))throw new Error('Chỉ nhận tệp Excel .xlsx. Hãy bấm Tải file mẫu và dùng tệp đó.');
+  const rows=await readXlsx(await file.arrayBuffer());
+  const hi=rows.findIndex(r=>r.some(c=>['ho va ten','ho ten'].includes(fold(c))));
+  if(hi<0)throw new Error('Không tìm thấy dòng tiêu đề “Họ và Tên”. Hãy dùng đúng tệp mẫu.');
+  const col={};rows[hi].forEach((c,i)=>{const f=fold(c);if(f=='ho va ten'||f=='ho ten')col.name=i;else if(f=='chuc vu')col.role=i;else if(f=='to truong')col.leader=i;else if(['to chuyen mon','to','khoi','to/khoi'].includes(f))col.team=i});
+  if(col.role===undefined)throw new Error('Thiếu cột “Chức vụ”. Hãy dùng đúng tệp mẫu.');
+  const data=[];rows.slice(hi+1).forEach(r=>{const n=cleanName(r[col.name]);if(!n)return;data.push({name:n,role:cleanName(r[col.role]),leader:col.leader===undefined?'':cleanName(r[col.leader]),team:col.team===undefined?'':cleanName(r[col.team])})});
+  if(!data.length)throw new Error('Tệp chưa có dòng nào được nhập Họ và Tên.');
+  IMP.rows=data;IMP.users=(await getUsers()).users;impRender()
+ }catch(e){IMP.rows=[];box.innerHTML='<div class="empty" style="padding:16px;color:#ff8b8b">'+esc(e.message)+'</div>';$('#impGo').disabled=true;$('#impHint').textContent=''}
+}
+function impPlan(){
+ const taken=new Set([...IMP.users.map(u=>u.name.toLowerCase()),...dataNames()]),have=new Set(IMP.users.filter(u=>u.fn).map(u=>fold(u.fn))),seen=new Set();
+ return IMP.rows.map((r,i)=>{
+  const p={i,name:r.name,role:'',leader:false,team:'',user:'',status:'new',msg:''},fr=fold(r.role);let te='';
+  if(!fr){p.status='err';p.msg='Thiếu chức vụ';return p}
+  if(fr=='giao vien')p.role='user';else if(fr=='ban giam hieu'||fr=='bgh')p.role='bgh';else{p.status='err';p.msg='Chức vụ không hợp lệ';return p}
+  p.leader=p.role=='user'&&['co','x','yes','true','1'].includes(fold(r.leader));
+  if(p.role=='user'){
+   if(r.team){const t=TEAMS.find(t=>fold(t)==fold(r.team));if(t)p.team=t;else te='Tổ “'+r.team+'” không có trong danh sách'}else te='Thiếu tổ chuyên môn'}
+  const fk=fold(r.name);
+  if(have.has(fk)||seen.has(fk)){p.status='dup';p.msg=seen.has(fk)?'Trùng trong tệp':'Đã có tài khoản';return p}
+  if(te){p.status='err';p.msg=te;return p}
+  seen.add(fk);
+  const b=genUser(r.name);let u=b,k=2;while(taken.has(u.toLowerCase()))u=b+(k++);taken.add(u.toLowerCase());p.user=u;
+  return p})}
+function impRender(){
+ const P=impPlan(),n=x=>P.filter(p=>p.status==x).length,box=$('#impPrev');
+ const badge=p=>p.status=='new'?'<span class="rb r-leader">Sẽ tạo</span>':p.status=='dup'?'<span class="rt">'+esc(p.msg)+'</span>':'<span class="rb r-admin">'+esc(p.msg)+'</span>';
+ box.innerHTML='<div class="ucnt">'+P.length+' dòng · <b style="color:#3fe0b5">'+n('new')+' tạo mới</b>'+' · '+n('dup')+' bỏ qua · <b style="color:#ff8b8b">'+n('err')+' lỗi</b></div><div id="impList">'+
+  P.map(p=>'<div class="irow"><span class="ino">'+(p.i+1)+'</span><div class="nm"><b>'+esc(p.name)+'</b><small>'+(p.role?(p.role=='bgh'?'Ban giám hiệu':'Giáo viên')+(p.leader?' · Tổ trưởng':'')+(p.team?' · '+esc(p.team):''):'')+'</small></div><div class="iu">'+(p.user?'<code>'+esc(p.user)+'</code>':'')+'</div>'+badge(p)+'</div>').join('')+'</div>';
+ const ok=n('new');
+ $('#impGo').disabled=!ok;$('#impGo').textContent='Tạo '+ok+' tài khoản';
+ $('#impHint').textContent=ok?(n('err')?'Dòng báo lỗi sẽ được bỏ qua. Hãy sửa trong file rồi chọn lại để tạo thêm.':''):'Không có tài khoản hợp lệ để tạo.'}
+const randPw=()=>{const A='abcdefghjkmnpqrstuvwxyz23456789',v=crypto.getRandomValues(new Uint8Array(8));return [...v].map(x=>A[x%A.length]).join('')};
+async function impCreate(){
+ if(!S||S.role!='admin')throw new Error('Chỉ Admin được tạo tài khoản.');
+ const plan=impPlan().filter(p=>p.status=='new'),bt=$('#impGo'),hint=$('#impHint');if(!plan.length)throw new Error('Không có tài khoản hợp lệ để tạo.');
+ const rnd=!!($('#impRand')||{}).checked;bt.disabled=true;let done=0;
+ try{
+  plan.forEach(p=>{p.pwd=rnd?randPw():p.user.toLowerCase()});
+  const rows=await Promise.all(plan.map(async p=>{const pw=await kd(p.user,p.pwd);hint.textContent='Đang mã hóa mật khẩu '+(++done)+'/'+plan.length+'…';return{user:p.user,name:p.name,role:p.role,team:p.team,leader:p.leader,pw}}));
+  hint.textContent='Đang lưu lên máy chủ…';
+  const mk=new Set();let d;
+  for(let k=0;k<rows.length;k+=150){d=await rpc('user.import',{rows:rows.slice(k,k+150)});(d.made||[]).forEach(n=>mk.add(n))}
+  applyUsers(d);const made=plan.filter(p=>mk.has(p.user)),skipped=plan.filter(p=>!mk.has(p.user));
+  IMP.result=made;render();$('#nuXl').innerHTML=impResultHtml(made,skipped,rnd)
+ }catch(e){bt.disabled=false;hint.textContent='';throw e}
+}
+const roleLbl=p=>p.role=='bgh'?'Ban giám hiệu':'Giáo viên'+(p.leader?' (Tổ trưởng)':'');
+function impResultHtml(made,skipped,rnd){return '<div><b style="color:var(--tx)">Đã tạo '+made.length+' tài khoản</b>'+(skipped.length?' · bỏ qua '+skipped.length+' (tên đăng nhập đã tồn tại)':'')+'</div><p>'+(rnd?'Mỗi người có một mật khẩu ngẫu nhiên riêng (bảng dưới). ':'Mật khẩu ban đầu giống tên đăng nhập. ')+'Mỗi người sẽ phải đổi mật khẩu ở lần đăng nhập đầu tiên. <b>Hãy lưu hoặc sao chép danh sách này ngay</b>: mật khẩu ban đầu không xem lại được sau khi đóng.</p><div id="impList">'+
+  made.map((p,i)=>'<div class="irow"><span class="ino">'+(i+1)+'</span><div class="nm"><b>'+esc(p.name)+'</b><small>'+esc(roleLbl(p))+(p.team?' · '+esc(p.team):'')+'</small></div><div class="iu" style="grid-column:span 2"><code>'+esc(p.user)+'</code> <span style="color:var(--mu)">/</span> <code>'+esc(p.pwd)+'</code></div></div>').join('')+
+  '</div><div class="fl"><button class="btn" data-a="impCopy">'+ic('copy')+'Sao chép</button><button class="btn" data-a="impCsv">'+ic('download')+'Tải .csv</button><button class="btn p" data-a="x">Đóng</button></div>'}
+function impDownload(blob,name){const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+function impTemplate(){const b=atob(TPL_B64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);impDownload(new Blob([u],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'Mau_Danh_sach_Can_bo_Giao_vien.xlsx')}
+async function doPwForce(n,n2){chkPw(n);if(n!==n2)throw new Error('Hai mật khẩu không khớp');if(n.toLowerCase()===S.name.toLowerCase())throw new Error('Mật khẩu mới không được trùng tên đăng nhập.');
+ const d=await rpc('pw.change',{pw:await kd(S.name,n)});S={...S,token:d.token,mc:false};saveS();close();toast('Đã đổi mật khẩu');await load();checkNotes()}
+// Hộp thoại nhập liệu / xác nhận giữa màn hình (thay cho prompt và confirm của trình duyệt)
+function dlg(o){return new Promise(res=>{
+ const ov=$('#ov2'),md=$('#md2');
+ md.innerHTML=`<div class="dh"><h3>${esc(o.title)}</h3><button class="btn i" data-d="x" title="Đóng">${ic('x')}</button></div><div class="db">${o.msg?`<p>${o.msg}</p>`:''}${o.html||''}${o.input?`<label>${esc(o.label||'')}<input id="dIn" type="${o.type||'text'}" value="${esc(o.value||'')}" autocomplete="off"></label>`:''}</div><div class="df"><button class="btn t" data-d="x">Hủy</button><button class="btn ${o.danger?'dng':'p'}" data-d="ok">${esc(o.ok||'Lưu')}</button></div>`;
+ ov.classList.add('on');const inp=$('#dIn');
+ if(inp){inp.focus();const v=inp.value,k=v.lastIndexOf('.');inp.setSelectionRange(0,o.base&&k>0?k:v.length)}else md.querySelector('[data-d=ok]').focus();
+ const kd=e=>{if(e.key=='Escape'){e.stopPropagation();done(null)}else if(e.key=='Enter'){e.preventDefault();e.stopPropagation();done(inp?inp.value:true)}};
+ const done=v=>{if(v&&o.collect)v=o.collect(md);ov.classList.remove('on');md.innerHTML='';ov.onclick=null;document.removeEventListener('keydown',kd,true);res(v)};
+ document.addEventListener('keydown',kd,true);
+ ov.onclick=e=>{if(e.target===ov)return done(null);const t=e.target.closest('[data-d]');if(t)done(t.dataset.d=='ok'?(inp?inp.value:true):null)};
+})}
+const SUBJ=['Tiếng Việt','Toán','Đạo đức','Tự nhiên và Xã hội','Lịch sử và Địa lý','Khoa học','Tin học','Công nghệ','Âm nhạc','Mỹ thuật','Giáo dục thể chất','Hoạt động trải nghiệm','Ngoại ngữ'];
+const EXT={pdf:['pdf'],word:['doc','docx'],excel:['xls','xlsx','csv'],ppt:['ppt','pptx'],image:['png','jpg','jpeg','gif','webp']};
+const structOn=()=>Object.values(F).some(Boolean);
+const effShare=f=>{const r=shRoot(f);return r?db.share[r]:[]};
+const pchip=p=>(q||structOn())&&p?'<span class="chip">'+esc(p.split('/').map(x=>x.split('~')[0]).join(' / '))+'</span>':'';
+// Bộ lọc theo tiêu chí (nguồn, khối, chia sẻ, người tải, loại, môn, lớp)
+function matchF(f){
+ if(F.subject)return false;
+ if(F.type&&F.type!='folder')return false;
+ const ow=(db.fowner||{})[f],o=ud(ow);
+ if(F.src=='mine')return ow===S.name;
+ if(F.src)return !!(o&&o.team===F.src);
+ return true}
+function matchI(i){
+ if(F.type=='folder')return false;
+ if(F.type&&EXT[F.type]&&!EXT[F.type].includes(ext(i.name)))return false;
+ if(F.subject&&i.subject!==F.subject)return false;
+ const o=ud(i.by);
+ if(F.src=='mine')return i.by===S.name;
+ if(F.src)return !!(o&&o.team===F.src);
+ return true}
+// Bảng lọc gồm 3 ô: Nguồn (Của tôi hoặc từng khối), Loại, Môn
+function renderFilters(){
+ if(!S)return;
+ const wide=S.role=='admin'||S.role=='bgh',teams=wide?TEAMS:(S.team?[S.team]:[]);
+ const mk=(k,lb,ops)=>`<label class="fsel">${lb}<select class="fs" data-k="${k}">${ops.map(([v,t])=>`<option value="${esc(v)}"${(F[k]||'')===v?' selected':''}>${esc(t)}</option>`).join('')}</select></label>`;
+ $('#fsel').innerHTML=mk('src','Nguồn',[['','Tất cả'],['mine','Của tôi'],...teams.map(t=>[t,t])])
+  +mk('type','Loại',[['','Tất cả'],['folder','Thư mục'],['file','Tệp'],['pdf','PDF'],['word','Word'],['excel','Excel'],['ppt','PowerPoint'],['image','Ảnh']])
+  +mk('subject','Môn',[['','Tất cả'],...SUBJ.map(t=>[t,t])])}
+// Trạng thái nộp bài của một thư mục đã chia sẻ
+const canStatus=f=>!!S&&!!db.share&&!!db.share[f]&&db.share[f].length>0&&!!(db.track&&db.track[f])&&(S.role=='admin'||S.role=='bgh'||(S.leader&&(db.fowner||{})[f]===S.name));
+function statusData(f){const sh=db.share[f]||[],ow=(db.fowner||{})[f],sub=p=>p===f||p.startsWith(f+'/');
+ return Object.values(UD).filter(u=>u.role=='user'&&!u.lock&&sh.includes(u.team)&&u.name!==ow&&(S.role=='admin'||S.role=='bgh'||u.team===S.team))
+ .map(u=>{const its=db.items.filter(i=>i.by===u.name&&sub(i.folder));return{u,n:its.length,last:its.map(i=>i.date).sort().pop()}})
+ .sort((a,b)=>(a.n>0)-(b.n>0)||(a.u.team||'').localeCompare(b.u.team||'','vi')||a.u.name.localeCompare(b.u.name,'vi'))}
+function statusWhy(d,flt){
+ const f=SX.f,sh=db.share[f]||[],ow=(db.fowner||{})[f];
+ if(d.length){return flt=='pending'?'Mọi người đều đã nộp.':flt=='done'?'Chưa có ai nộp tệp.':''}
+ const all=Object.values(UD).filter(u=>u.role=='user'&&!u.lock&&sh.includes(u.team)&&u.name!==ow);
+ if(!all.length)return 'Chưa có tài khoản giáo viên nào thuộc '+sh.join(', ')+' để theo dõi (chủ thư mục và tài khoản bị khóa không tính). Hãy vào Quản lý tài khoản, tạo tài khoản giáo viên hoặc chọn đúng Tổ chuyên môn cho họ.';
+ return 'Thư mục này chia sẻ cho '+sh.join(', ')+', còn bạn chỉ xem được thành viên thuộc '+(S.team||'tổ của mình')+'. Hãy chia sẻ thư mục cho đúng tổ.'}
+function statusHtml(){const d=statusData(SX.f),done=d.filter(x=>x.n>0).length,rows=d.filter(x=>SX.flt=='all'||(SX.flt=='done')==(x.n>0)),pct=d.length?Math.round(done*100/d.length):0;
+ return `<div class="stsum"><span><b style="color:var(--tx)">${done}/${d.length}</b> đã nộp · <b style="color:#ff8b8b">${d.length-done}</b> chưa nộp</span><div class="bar2"><i style="width:${pct}%"></i></div><span>${pct}%</span></div><div id="stlist">`+(rows.map(x=>`<div class="srow"><div class="nm"><b>${esc(x.u.name)}</b><small>${esc(x.u.team||'')}${x.u.leader?' · Tổ trưởng':''}</small></div><span class="rb ${x.n?'r-leader':'r-admin'}" style="justify-self:start">${x.n?'Đã nộp':'Chưa nộp'}</span><small>${x.n?x.n+' tệp · '+fdate(x.last):'Chưa có tệp nào'}</small></div>`).join('')||'<div class="empty" style="padding:24px">'+esc(statusWhy(d,SX.flt))+'</div>')+'</div>'}
+// Màu thư mục: đỏ = chia sẻ có yêu cầu nộp bài, xanh = thư mục của người khác, vàng = thư mục của mình
+const fcol=f=>{if(trkF(shRoot(f)))return 'background:#5a1f2d;color:#ff8b8b';const o=(db.fowner||{})[f];if(o&&S&&o!==S.name)return 'background:#1b2f57;color:#8fb4ff';return 'background:#3a3119;color:#ffc233'};
+const trkF=f=>!!((db.track||{})[f]&&(db.share||{})[f]&&db.share[f].length);
+const fchips=f=>{const o=(db.fowner||{})[f],sh=(db.share||{})[f];return (o&&o!==S.name?'<span class="chip">Của '+esc(o)+'</span>':'')+(sh&&sh.length?'<span class="chip">Chia sẻ: '+esc(sh.join(', '))+'</span>':'')+(trkF(f)?'<span class="chip req">Yêu cầu nộp bài</span>':'')};
+function render(){
+ if(S&&cur&&!canSeeF(cur))cur='';
+ const sig=cur+'|'+q+'|'+fq+'|'+sort+sdir+JSON.stringify(F);if(sig!==lastSig){pg=1;lastSig=sig}const lim=pg*PS;
+ $('.bar').style.display=S?'':'none';$('#sbar').style.display=S&&showS?'':'none';$('#fbar').style.display=S&&showF?'':'none';$('#bS').classList.toggle('on',showS||!!q);$('#bF').classList.toggle('on',showF||!!fq||structOn());if(S&&showF)renderFilters();
+ const parts=(cur&&S)?cur.split('/'):[];
+ $('#ftag').innerHTML=ic((cur&&S)?'folder':'drive')+((cur&&S)?'folder':'root folder');
+ $('#crumb').innerHTML='<a data-p="">root</a>'+parts.map((p,i)=>' / <a data-p="'+esc(parts.slice(0,i+1).join('/'))+'">'+esc(p.split('~')[0])+'</a>').join('');
+ const subs=(q||!S)?[]:db.folders.filter(f=>(structOn()||par(f)===cur)&&canSeeF(f)&&matchF(f)&&(!fq||dn(f).toLowerCase().includes(fq)));
+ let its=(q?db.items.filter(i=>(i.name+' '+(i.subject||'')+' '+(i.grade||'')+' '+(i.by||'')).toLowerCase().includes(q)):structOn()?db.items:db.items.filter(i=>i.folder===cur)).filter(canView).filter(matchI).filter(i=>!fq||(i.name+' '+(i.subject||'')+' lớp '+(i.grade||'')).toLowerCase().includes(fq));
+ const cmp={name:(a,b)=>a.name.localeCompare(b.name,'vi'),size:(a,b)=>a.size-b.size,date:(a,b)=>a.date.localeCompare(b.date),type:(a,b)=>ext(a.name).localeCompare(ext(b.name))||a.name.localeCompare(b.name,'vi')}[sort];
+ its.sort((a,b)=>cmp(a,b)*sdir);vis=its.slice(0,Math.max(0,lim-subs.length)).map(i=>i.id);
+ const last=db.items.filter(canView).map(i=>i.date).sort().pop();
+ $('#meta').innerHTML=S?(last?'<span class="mi">'+ic('calendar')+fdate(last)+'</span>':'')+'<span class="mi">'+ic('copy')+(subs.length+its.length)+' mục</span>'+(cur&&trkF(shRoot(cur))?'<span class="mi req">Yêu cầu nộp bài</span>':'')+((structOn()||fq||q)?'<span class="mi" style="color:#ffc233">Đang lọc</span>':''):'Cần đăng nhập để xem nội dung';
+ const ad=S&&S.role=='admin';
+ $('#accN').textContent=S?S.name:'Khách';$('#accS').innerHTML=S?uBadges(S):'Chế độ chỉ xem';
+ $('.av').textContent=S?S.name.slice(0,2).toUpperCase():'GV';
+ $('#nUsers').style.display=ad?'':'none';$('#nUsage').style.display=ad?'':'none';$('#nNote').style.display=S?'':'none';updBadge();$('#nSet').style.display=canCfg()?'':'none';$('#addAcc').style.display=ad?'':'none';$('#nPw').style.display=S?'':'none';$('#nOut').style.display=S?'':'none';$('#nLog').style.display=S?'none':'';
+ $('#delSel').style.display=sel.size?'':'none';$('#delSel').innerHTML=ic('trash')+'Xóa ('+sel.size+')';
+ $('#all').checked=vis.length>0&&vis.every(id=>sel.has(id));
+ let h=subs.slice(0,lim).map(f=>{const n=db.items.filter(i=>(i.folder===f||i.folder.startsWith(f+'/'))&&canView(i)).length;
+  return `<div class="row"><span style="width:18px"></span><div class="fi" style="${fcol(f)}">${ic('folder')}</div><div class="nm"><b data-p="${esc(f)}">${esc(dn(f))}</b><small>${n} tệp${pchip(par(f))}${fchips(f)}</small></div><div class="acts"><button class="btn i" data-m="f" data-id="${esc(f)}">${ic('more')}</button></div></div>`}).join('');
+ h+=its.slice(0,Math.max(0,lim-subs.length)).map(i=>{const pv=PREV.includes(ext(i.name));
+  return `<div class="row"><input type="checkbox" data-s="${esc(i.id)}" ${sel.has(i.id)?'checked':''}>${thumb(i)}<div class="nm"><b data-pv="${esc(i.id)}">${esc(i.name)}</b><small>${fdate(i.date)} · ${fsize(i.size)}${S&&i.by!==S.name?' · '+esc(i.by||'không rõ')+(ud(i.by)&&ud(i.by).team?' ('+esc(ud(i.by).team)+')':''):''}${pchip(i.folder)}${i.subject?'<span class="chip">'+esc(i.subject)+'</span>':''}${i.grade?'<span class="chip">Lớp '+esc(i.grade)+'</span>':''}</small></div>
+  <div class="acts">${pv?`<button class="btn hide" data-pv="${esc(i.id)}">${ic('eye')}Xem trước</button>`:''}<button class="btn" data-dl="${esc(i.id)}">${ic('download')}Tải xuống</button><button class="btn i" data-m="i" data-id="${esc(i.id)}">${ic('more')}</button></div></div>`}).join('');
+ if(subs.length+its.length>lim)h+='<div class="row more"><span>Đang hiển thị '+Math.min(lim,subs.length+its.length)+' / '+(subs.length+its.length)+' mục</span><button class="btn" data-a="more">Hiển thị thêm</button></div>';
+ $('#list').innerHTML=h||`<div class="empty">${(q||fq||structOn())?(F.src=='mine'&&!q&&!fq&&Object.keys(F).filter(k=>F[k]&&k!='src'&&k!='type').length==0?'Bạn chưa tạo thư mục nào. Bấm <b>Thư mục mới</b> để tạo. Muốn xem thư mục được chia sẻ hoặc tệp, đổi <b>Nguồn</b> hoặc <b>Loại</b> sang <b>Tất cả</b> trong bộ lọc.':'Không có mục nào khớp bộ lọc.'):(S?'Chưa có tệp nào bạn được phép xem ở đây. Bấm “Tải lên” để thêm tệp.':'<p style="margin-bottom:14px">Vui lòng đăng nhập để xem tệp.</p><button class="btn p" data-a="login">'+ic('key')+' Đăng nhập</button>')}</div>`;loadThumbs()
+}
+function nav(p){cur=p;q='';fq='';F=(p===''&&Object.keys(defF).length)?{...defF}:{};if(p===''&&Object.keys(defF).length)showF=true;$('#q').value='';$('#fq').value='';sel.clear();location.hash=encodeURIComponent(p);render()}
+addEventListener('hashchange',()=>{cur=decodeURIComponent(location.hash.slice(1));render()});
+
+function modal(k,x){
+ const md=$('#md');md.className='md';let h='';
+ if(k=='set')h=`<h3>Cài đặt máy chủ</h3><p>Địa chỉ máy chủ Google Apps Script mà trang web này kết nối tới. Thường được đọc tự động từ tệp <code>config.json</code>. Chỉ sửa khi địa chỉ triển khai thay đổi. Để trống rồi lưu nếu muốn dùng lại địa chỉ trong <code>config.json</code>.</p>
+ <label>Địa chỉ máy chủ (Web app URL)<input type="text" id="c1" value="${esc(API)}" placeholder="https://script.google.com/macros/s/…/exec"></label>
+ <div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" data-a="setOk">Kiểm tra và lưu</button></div>`;
+ if(k=='login')h=`<h3>Đăng nhập</h3><label>Tên đăng nhập<input type="text" id="ln" autocomplete="username"></label><label>Mật khẩu<input type="password" id="lp" autocomplete="current-password"></label><p>Quên mật khẩu hoặc gặp khó khăn khi đăng nhập? Vui lòng liên hệ <b>Admin</b> để được hỗ trợ.</p><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" data-a="loginOk">Đăng nhập</button></div>`;
+ if(k=='setup')h=`<h3>Thiết lập lần đầu</h3><p>Máy chủ vừa được cài và chưa có mật khẩu Admin. Nhập <b>mã thiết lập</b> (xem trong Nhật ký thực thi của hàm <code>setup</code> trên trang Apps Script) và đặt mật khẩu Admin mới.</p><label>Mã thiết lập<input type="text" id="st" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off"></label><label>Mật khẩu Admin mới (≥ 8 ký tự)<input type="password" id="s1" autocomplete="new-password"></label><label>Nhập lại mật khẩu<input type="password" id="s2" autocomplete="new-password"></label><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" data-a="setupOk">Hoàn tất</button></div>`;
+ if(k=='usage'){QD=x;md.className='md wide';h='<h3>Theo dõi dung lượng người dùng</h3>'+qBody()+'<div class="fl"><button class="btn" data-a="usageRe">'+ic('refresh')+'Làm mới</button><button class="btn p" data-a="x">Đóng</button></div>'}
+ if(k=='users'){UL=x;md.className='md wide';
+  h=`<h3>Quản lý tài khoản</h3><label>Lọc theo tổ chuyên môn<select id="uf"><option value="">Tất cả tổ chuyên môn</option>${TEAMS.map(t=>`<option${UF===t?' selected':''}>${t}</option>`).join('')}<option value="__none"${UF=='__none'?' selected':''}>Chưa phân tổ</option></select></label><div id="ulist">${usersHtml()}</div><div class="fl"><button class="btn p" data-a="x">Đóng</button></div>`}
+ if(k=='newu'){md.className='md wide';h=`<h3>Thêm tài khoản</h3><div class="tabs"><button class="tab on" data-a="nuTab" data-id="one">Từng tài khoản</button><button class="tab" data-a="nuTab" data-id="xl">Từ file Excel</button></div><div id="nuOne" class="nup"><label>Tên đăng nhập mới<input type="text" id="nn"></label><label>Mật khẩu (≥ 8 ký tự)<input type="password" id="np"></label><label>Vai trò<select id="nr"><option value="user">Giáo viên: chỉ xem, sửa, xóa tệp của mình</option><option value="bgh">Ban giám hiệu: xem tất cả tệp</option><option value="admin">Admin: toàn quyền</option></select></label><label>Tổ chuyên môn<select id="nt">${teamOpts('')}</select></label><label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="nl" style="width:18px"> Phân công làm tổ trưởng của tổ này</label><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" data-a="uAdd">Tạo tài khoản</button></div></div><div id="nuXl" class="nup" style="display:none"><p>Tạo nhiều tài khoản cùng lúc từ danh sách cán bộ, giáo viên. Mỗi dòng ghi Họ và Tên, Chức vụ, Tổ trưởng và <b>Tổ chuyên môn</b>, nên một file có thể gồm giáo viên của nhiều tổ. Tên đăng nhập tự tạo từ họ tên (ví dụ Đoàn Thanh Cang → <b>Cangdt</b>), mật khẩu ban đầu giống tên đăng nhập.</p><div class="frow"><button class="btn" data-a="impTpl">${ic('download')}Tải file mẫu</button></div><label>Chọn file Excel (.xlsx)<input type="file" id="impFile" accept=".xlsx"></label><label style="flex-direction:row;align-items:flex-start;gap:8px"><input type="checkbox" id="impRand" style="width:18px;margin-top:2px"><span>Tạo mật khẩu ngẫu nhiên cho từng người (an toàn hơn). Nếu không tích, mật khẩu ban đầu giống tên đăng nhập.</span></label><div id="impPrev"></div><p id="impHint"></p><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" id="impGo" data-a="impGo" disabled>Tạo tài khoản</button></div></div>`}
+ if(k=='status'){SX={f:x,flt:'all'};md.className='md wide';
+  h=`<h3>Trạng thái nộp bài</h3><p>Thư mục <b style="color:var(--tx)">${esc(dn(x))}</b> · chia sẻ cho ${esc((db.share[x]||[]).join(', '))}</p><p style="font-size:13px">Thư mục này được bật <b style="color:var(--tx)">Yêu cầu nộp bài</b>. Danh sách gồm các giáo viên thuộc tổ được chia sẻ. Giáo viên được tính là <b style="color:var(--tx)">Đã nộp</b> khi có ít nhất 1 tệp do chính họ tải vào thư mục này (hoặc thư mục con). Chủ thư mục và tài khoản bị khóa không được tính.</p><div class="frow"><label class="fsel" style="flex:1">Hiển thị<select id="sfl" style="width:100%"><option value="all">Tất cả</option><option value="pending">Chưa nộp</option><option value="done">Đã nộp</option></select></label><button class="btn" data-a="stCopy">${ic('copy')}Sao chép danh sách chưa nộp</button><button class="btn" data-a="stRefresh">${ic('refresh')}Làm mới</button></div><div id="stwrap">${statusHtml()}</div><div class="fl"><button class="btn p" data-a="x">Đóng</button></div>`}
+ if(k=='shr'){const c2=(db.share||{})[x]||[],ops=S.role=='admin'||S.role=='bgh'?TEAMS:[S.team];
+  h=`<h3>Chia sẻ thư mục “${esc(dn(x))}”</h3><p>Thành viên các khối được chọn sẽ thấy thư mục này, xem biểu mẫu bạn đăng và tải tài liệu của họ lên. Họ không thấy tệp của nhau. Bỏ chọn hết để ngừng chia sẻ.</p>`+(ops.length>1?`<label style="flex-direction:row;align-items:center;gap:8px;font-weight:700;color:var(--tx);padding-bottom:10px;border-bottom:1px solid var(--line)"><input type="checkbox" id="stall" style="width:18px" ${ops.every(t=>c2.includes(t))?'checked':''}> Tất cả</label>`:'')+ops.map(t=>`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" class="st" value="${esc(t)}" style="width:18px" ${c2.includes(t)?'checked':''}> ${esc(t)}</label>`).join('')+`<label class="rad" style="margin-top:6px"><input type="checkbox" id="trk" ${(db.track||{})[x]?'checked':''}><span><b>Yêu cầu nộp bài và theo dõi trạng thái nộp</b><small>Bật khi cần thu tài liệu: bạn sẽ có màn hình xem ai đã nộp, ai chưa nộp. Để trống thì đây chỉ là thư mục chia sẻ bình thường, không bắt buộc ai phải nộp.</small></span></label><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" data-a="shrOk" data-id="${esc(x)}">Lưu</button></div>`}
+ if(k=='uedit')h=`<h3>Phân quyền: ${esc(x.name)}</h3><label>Vai trò<select id="er"><option value="user"${x.role=='user'?' selected':''}>Giáo viên</option><option value="bgh"${x.role=='bgh'?' selected':''}>Ban giám hiệu</option><option value="admin"${x.role=='admin'?' selected':''}>Admin</option></select></label><label>Tổ chuyên môn<select id="et">${teamOpts(x.team||'')}</select></label><label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="el" style="width:18px" ${x.leader?'checked':''}> Phân công làm tổ trưởng</label><div class="fl"><button class="btn" data-a="uback">Quay lại</button><button class="btn p" data-a="uEditOk" data-id="${esc(x.name)}">Lưu</button></div>`;
+ if(k=='pwforce')h=`<h3>Đổi mật khẩu lần đầu</h3><p>Tài khoản của bạn đang dùng mật khẩu ban đầu. Hãy đặt mật khẩu mới để tiếp tục sử dụng.</p><label>Mật khẩu mới (≥ 8 ký tự, khác tên đăng nhập)<input type="password" id="f1" autocomplete="new-password"></label><label>Nhập lại mật khẩu<input type="password" id="f2" autocomplete="new-password"></label><div class="fl"><button class="btn p" data-a="pwfOk">Đổi mật khẩu</button></div>`;
+ if(k=='pw')h=`<h3>Đổi mật khẩu</h3><label>Mật khẩu hiện tại<input type="password" id="p0"></label><label>Mật khẩu mới (≥ 8 ký tự)<input type="password" id="p1"></label><label>Nhập lại<input type="password" id="p2"></label><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" data-a="pwOk">Đổi mật khẩu</button></div>`;
+ if(k=='help'){md.className='md wide';h=helpHtml()}
+ if(k=='up')h=`<h3>Tải lên tệp</h3><label>Tệp (Word, PDF, PowerPoint… tối đa 50 MB/tệp)<input type="file" id="upf" multiple></label>
+ <label>Môn (tùy chọn)<select id="us"><option value="">Không chọn</option>${SUBJ.map(t=>`<option>${t}</option>`).join('')}</select></label>
+ <label>Lớp (tùy chọn)<select id="ug"><option value="">Không chọn</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+ <p id="ust"></p><div class="upbar" id="upbar" style="display:none" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i></i><span></span></div><div class="fl"><button class="btn" data-a="x">Hủy</button><button class="btn p" id="ub" data-a="upOk">Tải lên</button></div>`;
+ if(k=='pv'){md.className='md big';PVID=x.id;
+  h=`<div class="fl" style="justify-content:space-between;align-items:center"><b>${esc(x.name)}</b><span style="display:flex;gap:8px"><button class="btn" data-dl="${esc(x.id)}" data-nm="${esc(x.name)}" data-fid="${esc(x.fid||'')}">${ic('download')}Tải xuống</button>${x.fid?`<a class="btn" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${encodeURIComponent(x.fid)}/view">Mở trong Google Drive</a>`:''}<button class="btn" data-a="x">Đóng</button></span></div><div id="pvb" class="empty" style="padding:40px">Đang tải bản xem trước…${x.fid?'':' (tệp Word, Excel, PowerPoint có thể mất vài giây)'}</div>`}
+ if(k=='notes'||k=='notePop'||k=='noteNew')h=noteModal(k,md);
+ if(NAVK[k])setNav(NAVK[k]);else if(k=='noteNew')setNav('nNote');
+ md.innerHTML=h;$('#ov').classList.add('on');if(k=='pv')pvLoad(x)
+}
+// Tô sáng mục menu trái theo cửa sổ đang mở; đóng cửa sổ thì quay về File Manager
+const NAVK={usage:'nUsage',notes:'nNote',users:'nUsers',newu:'nUsers',uedit:'nUsers',pw:'nPw',pwforce:'nPw',set:'nSet',help:'nHelp',login:'nLog'};
+const setNav=id=>document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.id===id));
+const close=()=>{setNav('nHome');lockModal=false;$('#ov').classList.remove('on');$('#md').innerHTML=''};
+
+const PART=3000000,UP_PAR=3,FILE_PAR=3;let NOFAST=false;
+const b64f=blob=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(blob)});
+// Gửi thẳng tệp lên Google Drive (nhanh nhất): máy chủ chỉ kiểm tra quyền, trình duyệt gửi tệp cho Drive
+function putDrive(url,f,onp){return new Promise((res,rej)=>{const x=new XMLHttpRequest(),bad=m=>Object.assign(new Error(m),{code:'nofast'});
+ x.open('PUT',url);x.upload.onprogress=e=>{if(e.lengthComputable)onp(e.loaded/e.total)};
+ x.onload=()=>{if(x.status>=200&&x.status<300){try{const id=JSON.parse(x.responseText).id;id?res(id):rej(bad('no id'))}catch(e){rej(bad('bad json'))}}else rej(bad('Drive '+x.status))};
+ x.onerror=()=>rej(bad('network'));x.ontimeout=()=>rej(bad('timeout'));x.send(f)})}
+async function upFast(f,dir,subject,grade,onp){
+ const base={folder:dir,name:f.name,subject,grade};
+ const bg=await rpc('upload.begin',{...base,size:f.size,origin:location.origin});
+ const id=await putDrive(bg.url,f,onp);
+ return await rpc('upload.commit',{...base,ticket:bg.ticket,id})}
+async function upSlow(f,dir,subject,grade,onp){
+ if(f.size<=PART){const data=await b64f(f);return await retry(()=>rpc('file.add',{folder:dir,name:f.name,subject,grade,data}),2)}
+ const np=Math.ceil(f.size/PART),parts=new Array(np);let next=0,done=0,fail=null;
+ const worker=async()=>{while(!fail){const k=next++;if(k>=np)return;
+  try{const data=await b64f(f.slice(k*PART,(k+1)*PART));parts[k]=(await retry(()=>rpc('file.put',{data}),4)).h;done++;onp(done/np)}catch(e){fail=e}}};
+ await Promise.all(Array.from({length:Math.min(UP_PAR,np)},worker));if(fail)throw fail;
+ return await rpc('file.add',{folder:dir,name:f.name,subject,grade,parts})}
+async function doUpload(files,subject,grade){
+ const st=$('#ust'),bt=$('#ub'),dir=cur;bt.disabled=true;let err=null,okc=0,last=null;
+ const list=[...files],pr=list.map(()=>0),show=()=>{const tot=list.reduce((a,f)=>a+f.size,0)||1,dn=list.reduce((a,f,i)=>a+f.size*pr[i],0);
+  const sent=dn>=tot-1&&okc<list.length,pc=Math.min(sent?99:100,Math.round(dn*100/tot)),ub=$('#upbar');
+  st.textContent=sent?`Đã gửi xong ${fsize(tot)}, đang lưu vào Google Drive… (có thể mất vài giây, xin đừng đóng cửa sổ)`:`Đang tải ${okc}/${list.length} tệp – ${fsize(dn)} / ${fsize(tot)}`+(list.length==1?': '+list[0].name:'');
+  if(ub){ub.style.display='';ub.classList.toggle('wait',sent);ub.classList.toggle('ind',pc==0&&okc==0);ub.setAttribute('aria-valuenow',pc);ub.firstChild.style.width=pc+'%';ub.lastChild.textContent=pc+'%'}};
+ for(const f of list){if(f.size>50*1048576){err=new Error(f.name+' vượt quá 50 MB');break}if(!f.size){err=new Error(f.name+' là tệp rỗng');break}}
+ let next=0;show();
+ const worker=async()=>{while(!err){const n=next++;if(n>=list.length)return;const f=list[n],onp=p=>{pr[n]=p;show()};
+  try{
+   let r;
+   if(!NOFAST){try{r=await upFast(f,dir,subject,grade,onp)}catch(e){if(e.code=='nofast'){NOFAST=true;pr[n]=0}else if(!e.code||e.code=='server'||e.code=='busy'){pr[n]=0;try{r=await upFast(f,dir,subject,grade,onp)}catch(e2){if(e2.code&&e2.code!='nofast'&&e2.code!='server'&&e2.code!='busy')throw e2;NOFAST=true;pr[n]=0}}else throw e}}
+   if(!r)r=await upSlow(f,dir,subject,grade,onp);
+   pr[n]=1;okc++;last=r;show()
+  }catch(e){err=e}}};
+ await Promise.all(Array.from({length:Math.min(FILE_PAR,list.length)},worker));
+ if(err){bt.disabled=false;st.textContent='';const ub=$('#upbar');if(ub)ub.style.display='none';toast('Lỗi: '+err.message+(okc?' (đã tải được '+okc+' tệp)':''))}else{close();toast('Đã tải lên '+list.length+' tệp')}
+ if(!err&&list.length==1&&last&&last.bundle){applyBundle(last.bundle);render();checkNotes()}else await load()
+}
+const itemOf=id=>db.items.find(i=>i.id===id);
+document.addEventListener('click',async e=>{
+ const box=$('#menuBox');if(!e.target.closest('[data-m]'))box.style.display='none';
+ if(e.target===$('#ov')){if(!lockModal)close();return}
+ const t=e.target.closest('[data-a],[data-p],[data-pv],[data-m],[data-dl],[data-open]');if(!t)return;
+ if(t.dataset.dl){const x=itemOf(t.dataset.dl)||{id:t.dataset.dl,name:t.dataset.nm||'tep',fid:t.dataset.fid||''};return dlFile(x)}
+ if(t.dataset.open)return openItem({id:t.dataset.open,name:t.dataset.nm||'tep',fid:t.dataset.fid||''});
+ if(t.dataset.p!==undefined)return nav(t.dataset.p);
+ if(t.dataset.pv)return modal('pv',itemOf(t.dataset.pv));
+ if(['sort','disp','hd'].includes(t.dataset.m)){const r=t.getBoundingClientRect(),m=t.dataset.m,ck=v=>'<span class="ck">'+(v?ic('check'):'')+'</span>';let h='';
+  if(m=='sort')h='<div class="mh">Sắp xếp theo</div>'+[['date','Ngày tạo'],['name','Tên'],['size','Dung lượng'],['type','Loại tệp']].map(([k,l])=>'<button data-a="sortSet" data-id="'+k+'">'+ck(sort==k)+l+(sort==k?'<small style="margin-left:auto;color:var(--mu)">'+(k=='name'||k=='type'?(sdir>0?'A–Z':'Z–A'):(sdir>0?'↑':'↓'))+'</small>':'')+'</button>').join('');
+  if(m=='disp')h='<div class="mh">Tùy chọn hiển thị</div><button data-a="dTh">'+ck(D.th)+'Hiển thị hình thu nhỏ</button><div class="mh">Kích thước hình thu nhỏ</div>'+[[36,'Nhỏ'],[48,'Vừa'],[64,'Lớn']].map(([v,l])=>'<button data-a="dSz" data-id="'+v+'">'+ck(D.sz==v)+l+'</button>').join('');
+  if(m=='hd')h='<button data-a="selAll">'+ic('check')+' Chọn tất cả</button><button data-a="share">'+ic('link')+' Sao chép liên kết thư mục</button>'+(cur&&canStatus(cur)?'<button data-a="stOpen" data-id="'+esc(cur)+'">'+ic('check')+' Trạng thái nộp bài</button>':'');
+  box.innerHTML=h;box.style.minWidth='220px';placeMenu(r);return}
+ if(t.dataset.m){const r=t.getBoundingClientRect(),id=t.dataset.id,f=t.dataset.m=='f';
+  box.innerHTML=(f?'<button data-a="rnF" data-id="'+esc(id)+'">'+ic('pencil')+' Đổi tên</button>'+(canShare(id)?'<button data-a="shr" data-id="'+esc(id)+'">'+ic('users')+' Chia sẻ cho khối</button>':'')+(canStatus(id)?'<button data-a="stOpen" data-id="'+esc(id)+'">'+ic('check')+' Trạng thái nộp bài</button>':''):'<button data-a="rn" data-id="'+esc(id)+'">'+ic('pencil')+' Đổi tên</button>')+'<button data-a="'+(f?'delF':'delI')+'" data-id="'+esc(id)+'" style="color:#ff8b96">'+ic('trash')+' Xóa</button>';
+  box.style.minWidth='';placeMenu(r);return}
+ const a=t.dataset.a,id=t.dataset.id,i=id&&itemOf(id);
+ if(a=='x')close();
+ if(a=='menu')$('#sb').classList.toggle('open');
+ if(a=='home')nav('');
+ if((a=='set'&&canCfg())||a=='help')modal(a);
+ if(a=='more'){pg++;render()}
+ if(a=='tSearch'){showS=!showS;if(!showS){q='';$('#q').value=''}render();if(showS)$('#q').focus()}
+ if(a=='tFilter'){showF=!showF;if(!showF){fq='';F={};defF={};$('#fq').value=''}render();if(showF)$('#fq').focus()}
+ if(a=='fClear'){F={};defF={};fq='';$('#fq').value='';render()}
+ if(a=='stOpen'&&canStatus(id))modal('status',id);
+ if(a=='stRefresh'){await load();modal('status',SX.f)}
+ if(a=='stCopy'){const d=statusData(SX.f).filter(x=>!x.n).map(x=>x.u.name+(x.u.team?' ('+x.u.team+')':''));navigator.clipboard.writeText(d.join('\n'));toast(d.length?'Đã sao chép '+d.length+' người chưa nộp':'Mọi người đều đã nộp')}
+ if(a=='fApply'){fq=$('#fq').value.trim().toLowerCase();render()}
+ if(a=='sortSet'){if(sort==id)sdir=-sdir;else{sort=id;sdir=(id=='name'||id=='type')?1:-1}render()}
+ if(a=='dTh'){D.th=!D.th;saveD();render()}
+ if(a=='dSz'){D.sz=+id;D.th=true;saveD();render()}
+ if(a=='selAll'){vis.forEach(x=>sel.add(x));render()}
+ if(a=='re')load();
+ if(a=='share'){navigator.clipboard.writeText(location.href);toast('Đã sao chép liên kết thư mục')}
+ if(a=='setOk')try{const u=$('#c1').value.trim();
+  if(!u){try{localStorage.removeItem('fcapi')}catch(e){}API='';await loadApi();close();toast(API?'Đã dùng lại địa chỉ trong config.json':'Chưa có địa chỉ máy chủ');return load()}
+  if(!/^https:\/\/script\.google\.com\/(?:macros\/s|a\/macros\/[\w.-]+\/s)\/[\w-]+\/exec$/.test(u)&&!/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/|$)/.test(u))throw new Error('Địa chỉ phải có dạng https://script.google.com/macros/s/…/exec');
+  let ok=false;try{const j=await (await fetch(u)).json();ok=j&&j.app=='filecloud'}catch(e){}
+  if(!ok)throw new Error('Không kết nối được hoặc đây không phải máy chủ File Cloud. Hãy kiểm tra địa chỉ và cách triển khai.');
+  API=u;APIBAD=false;try{localStorage.setItem('fcapi',u)}catch(e){}close();toast('Đã lưu địa chỉ máy chủ');load()}catch(er){toast(er.message)}
+ if(a=='login')modal('login');
+ if(a=='logout'){S=null;F={};defF={...DEF0};showF=false;try{sessionStorage.removeItem('khs')}catch(e){}BCclear();toast('Đã đăng xuất');load()}
+ if(a=='loginOk'){const b0=t.textContent;t.disabled=true;t.textContent='Đang đăng nhập…';try{await doLogin($('#ln').value.trim(),$('#lp').value)}catch(er){toast(er.message)}finally{t.disabled=false;t.textContent=b0}}
+ if(a=='setupOk')try{await doSetup($('#st').value.trim(),$('#s1').value,$('#s2').value)}catch(er){toast(er.message)}
+ if(a=='usage'||a=='usageRe')try{modal('usage',await rpc('usage.stats'))}catch(er){toast(er.message)}
+ if(a=='users')try{modal('users',(await getUsers())||{users:[]})}catch(er){toast(er.message)}
+ if(a=='pw')modal('pw');
+ if(a=='pwOk')try{await doPw($('#p0').value,$('#p1').value,$('#p2').value)}catch(er){toast(er.message)}
+ if(a=='uAdd')try{const n=$('#nn').value.trim(),p=$('#np').value,r=$('#nr').value,tm=$('#nt').value.trim(),ld=$('#nl').checked;chkPw(p);if(ld&&!tm)throw new Error('Hãy chọn tổ cho tổ trưởng');if(!/^[\w.-]{3,30}$/.test(n))throw new Error('Tên đăng nhập 3–30 ký tự: chữ không dấu, số, . _ -');
+  const d=await rpc('user.add',{name:n,role:r,team:tm,leader:ld,pw:await kd(n,npw(n,p))});applyUsers(d);close();render();toast('Đã tạo tài khoản '+n)}catch(er){toast(er.message)}
+ if(a=='addU'&&S&&S.role=='admin'){IMP={rows:[],users:[]};modal('newu')}
+ if(a=='nuTab'){const xl=id=='xl';$('#nuOne').style.display=xl?'none':'';$('#nuXl').style.display=xl?'':'none';document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.id==id))}
+ if(a=='impTpl')impTemplate();
+ if(a=='impGo')try{await impCreate()}catch(er){toast(er.message)}
+ if(a=='impCopy'){navigator.clipboard.writeText(['Họ và tên\tTài khoản\tMật khẩu ban đầu'].concat((IMP.result||[]).map(p=>p.name+'\t'+p.user+'\t'+p.pwd)).join('\n'));toast('Đã sao chép danh sách tài khoản')}
+ if(a=='impCsv'){const q=v=>'"'+String(v).replace(/"/g,'""')+'"';impDownload(new Blob(['﻿'+[['STT','Họ và tên','Tài khoản','Mật khẩu ban đầu','Chức vụ','Tổ chuyên môn']].concat((IMP.result||[]).map((p,i)=>[i+1,p.name,p.user,p.pwd,roleLbl(p),p.team||''])).map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'Danh_sach_tai_khoan.csv')}
+ if(a=='pwfOk')try{await doPwForce($('#f1').value,$('#f2').value)}catch(er){toast(er.message)}
+ if(a=='notes'&&S){NTAB=NTAB||'in';modal('notes');const u=unreadN();if((!canNote()||NTAB=='in')&&u.length)markSeen(u.map(n=>n.id))}
+ if(a=='noteTab'){NTAB=id;modal('notes')}
+ if(a=='noteNew'&&canNote()){NC={sel:new Set(),flt:'',q:''};modal('noteNew')}
+ if(a=='noteAll'){rcVis().forEach(u=>NC.sel.add(u.name));rcRefresh()}
+ if(a=='noteNone'){NC.sel.clear();rcRefresh()}
+ if(a=='noteSend')try{await sendNote()}catch(er){toast(er.message)}
+ if(a=='notePopOk'){const ids=NP.map(n=>n.id);close();markSeen(ids)}
+ if(a=='noteDel'){if(!await dlg({title:'Xóa thông báo',msg:'Xóa thông báo này? Người nhận cũng không còn thấy nó nữa.',ok:'Xóa',danger:1}))return;
+  try{const d=await rpc('notes.delete',{id});NT={notes:d.notes};NTAB='out';modal('notes');toast('Đã xóa thông báo')}catch(er){toast(er.message)}}
+ if(a=='uEdit')try{const L=await getUsers();modal('uedit',L.users.find(u=>u.name==id))}catch(er){toast(er.message)}
+ if(a=='uback')try{modal('users',(await getUsers())||{users:[]})}catch(er){toast(er.message)}
+ if(a=='uEditOk')try{const tm=$('#et').value.trim(),ld=$('#el').checked,r=$('#er').value;if(ld&&!tm)throw new Error('Hãy chọn tổ cho tổ trưởng');if(id==S.name&&r!='admin')throw new Error('Không thể tự hạ quyền Admin của chính mình');
+  const d=await rpc('user.edit',{name:id,role:r,team:tm,leader:ld});applyUsers(d);modal('users',d);render();toast('Đã cập nhật phân quyền')}catch(er){toast(er.message)}
+ if(a=='uReset')try{const p=await dlg({title:'Đặt lại mật khẩu',label:'Mật khẩu mới cho '+id+' (tối thiểu 8 ký tự)',type:'password',ok:'Đặt lại',input:1});if(!p)return;chkPw(p);const d=await rpc('user.reset',{name:id,pw:await kd(id,npw(id,p))});if(d.token){S={...S,token:d.token};saveS()}applyUsers(d);modal('users',d);toast('Đã đặt lại mật khẩu')}catch(er){toast(er.message)}
+ if(a=='uDel')try{await load();await askDelete(id)}catch(er){toast(er.message)}
+ if(a=='uLock')try{const cu=(UL.users||[]).find(u=>u.name==id);if(!cu)return;
+  if(!cu.lock&&!await dlg({title:'Khóa tài khoản',msg:'Khóa tài khoản <b>'+esc(id)+'</b>? Người này sẽ không đăng nhập được nữa nhưng thư mục và tệp vẫn được giữ nguyên. Bạn có thể mở khóa bất cứ lúc nào.',ok:'Khóa'}))return;
+  const on=!cu.lock;{const d=await rpc('user.lock',{name:id,on});applyUsers(d);modal('users',d)}toast(on?'Đã khóa tài khoản':'Đã mở khóa tài khoản')}catch(er){toast(er.message)}
+ if(a=='up'){if(!can()){toast('Hãy đăng nhập để tải lên.');return modal('login')}if(cur&&!canPut(cur))return toast('Bạn không có quyền tải lên thư mục này.');modal('up')}
+ if(a=='upOk'){const f=$('#upf').files;if(!f.length)return toast('Hãy chọn ít nhất một tệp');doUpload(f,$('#us').value,$('#ug').value)}
+ if(a=='nf'){const n=await dlg({title:'Thư mục mới',label:'Tên thư mục (ví dụ: Lớp 3)',ok:'Tạo',input:1});if(!n||!n.trim())return;
+  let p=(cur?cur+'/':'')+n.trim().replace(/[\/~]/g,'-');
+  if(cur&&S&&S.role!='admin'&&S.role!='bgh'&&(db.fowner||{})[cur]!==S.name)return toast('Bạn chỉ tạo được thư mục con trong thư mục của mình.');
+  if(db.folders.includes(p)){if((db.fowner||{})[p]===S.name)return toast('Bạn đã có thư mục này');p+='~'+S.name;if(db.folders.includes(p))return toast('Bạn đã có thư mục này')}
+  act(()=>rpc('folder.create',{parent:cur,name:n.trim()}),'Đã tạo thư mục',()=>{db.folders.push(p);db.fowner[p]=S.name})}
+ if(a=='rn'&&i&&deny(i))return;
+ if(a=='rn'){const n=await dlg({title:'Đổi tên tệp',label:'Tên mới',value:i.name,ok:'Lưu',input:1,base:1});if(n&&n.trim())act(()=>rpc('file.rename',{id:i.id,name:n.trim()}),'Đã đổi tên',()=>{const x=itemOf(i.id);if(x)x.name=n.trim()},1)}
+ if(a=='delI'&&deny(i))return;
+ if(a=='delI'&&await dlg({title:'Xóa tệp',msg:'Bạn có chắc muốn xóa <b>'+esc(i.name)+'</b>? Không thể hoàn tác.',ok:'Xóa',danger:1}))act(()=>rpc('file.delete',{ids:[i.id]}),'Đã xóa',()=>{db.items=db.items.filter(x=>x.id!==i.id)},1);
+ if((a=='delF'||a=='rnF')&&fdeny(id))return;
+ if(a=='rnF'){const old=dn(id),n=((await dlg({title:'Đổi tên thư mục',label:'Tên mới',value:old,ok:'Lưu',input:1}))||'').trim().replace(/[\/~]/g,'-');if(!n||n===old)return;
+  const np=(par(id)?par(id)+'/':'')+n;if(db.folders.includes(np))return toast('Đã có thư mục trùng tên');
+  const mv=p=>p===id?np:p.startsWith(id+'/')?np+p.slice(id.length):p;
+  act(()=>rpc('folder.rename',{id,name:n}),'Đã đổi tên thư mục',()=>{db.folders=db.folders.map(mv);db.items.forEach(x=>{x.folder=mv(x.folder)});['fowner','share','track'].forEach(m=>{const o={};Object.keys(db[m]||{}).forEach(k=>{o[mv(k)]=db[m][k]});db[m]=o});if(cur&&mv(cur)!==cur)cur=mv(cur)})}
+ if(a=='delF'){const sub=p=>p===id||p.startsWith(id+'/'),its=db.items.filter(x=>sub(x.folder));
+  if(!await dlg({title:'Xóa thư mục',msg:'Xóa thư mục <b>'+esc(dn(id))+'</b>'+(its.length?' cùng <b>'+its.length+' tệp</b> bên trong (kể cả tệp của người khác nộp vào)':'')+'? Không thể hoàn tác.',ok:'Xóa',danger:1}))return;
+  act(()=>rpc('folder.delete',{id}),'Đã xóa thư mục',()=>{db.folders=db.folders.filter(p=>!sub(p));db.items=db.items.filter(x=>!sub(x.folder));['fowner','share','track'].forEach(m=>{Object.keys(db[m]||{}).forEach(k=>{if(sub(k))delete db[m][k]})});if(cur&&sub(cur))cur=par(id)},1)}
+ if(a=='shr'&&canShare(id))modal('shr',id);
+ if(a=='shrOk'&&canShare(id)){const v=[...document.querySelectorAll('.st:checked')].map(c=>c.value),tk=!!($('#trk')||{}).checked&&v.length>0;close();
+  act(()=>rpc('folder.share',{id,teams:v,track:tk}),v.length?(tk?'Đã chia sẻ và bật theo dõi nộp bài':'Đã chia sẻ thư mục'):'Đã ngừng chia sẻ',()=>{if(v.length)db.share[id]=v;else delete db.share[id];if(tk)db.track[id]=true;else delete db.track[id]})}
+ if(a=='delSel'&&S&&S.role!='admin'&&[...sel].some(id=>itemOf(id).by!==S.name))return toast('Bạn chỉ được xóa tệp do mình tải lên.');
+ if(a=='delSel'&&await dlg({title:'Xóa tệp đã chọn',msg:'Xóa <b>'+sel.size+' tệp</b> đã chọn? Không thể hoàn tác.',ok:'Xóa',danger:1})){const ids=[...sel];act(()=>rpc('file.delete',{ids}),'Đã xóa',()=>{const s=new Set(ids);db.items=db.items.filter(x=>!s.has(x.id))},1)}
+});
+document.addEventListener('change',e=>{
+ if(e.target.dataset.s){e.target.checked?sel.add(e.target.dataset.s):sel.delete(e.target.dataset.s);render()}
+ if(e.target.id=='all'){vis.forEach(id=>e.target.checked?sel.add(id):sel.delete(id));render()}
+ if(e.target.id=='sort'){sort=e.target.value;render()}
+ if(e.target.id=='stall')document.querySelectorAll('.st').forEach(c=>c.checked=e.target.checked);
+ if(e.target.classList.contains('st')){const al=$('#stall');if(al)al.checked=[...document.querySelectorAll('.st')].every(c=>c.checked)}
+ if(e.target.classList.contains('fs')){F[e.target.dataset.k]=e.target.value;if(['src','type'].includes(e.target.dataset.k)){if(e.target.value)defF[e.target.dataset.k]=e.target.value;else delete defF[e.target.dataset.k]}render()}
+ if(e.target.id=='sfl'){SX.flt=e.target.value;$('#stwrap').innerHTML=statusHtml()}
+ if(e.target.id=='impFile'&&e.target.files[0])impLoad(e.target.files[0]);
+ 
+ if(e.target.name=='dm'){const t=$('#dmT');if(t)t.disabled=e.target.value!='move'}
+ if(e.target.id=='nrf'){NC.flt=e.target.value;rcRefresh()}
+ if(e.target.classList.contains('rc')){if(e.target.checked)NC.sel.add(e.target.value);else NC.sel.delete(e.target.value);rcRefresh()}
+ if(e.target.id=='qf'&&$('#qlist')){QF=e.target.value;$('#qlist').innerHTML=qHtml()}
+ if(e.target.id=='qs'&&$('#qlist')){QS=e.target.value;$('#qlist').innerHTML=qHtml()}
+ if(e.target.id=='uf'&&$('#ulist')){UF=e.target.value;$('#ulist').innerHTML=usersHtml()}
+});
+$('#fq').addEventListener('keydown',e=>{if(e.key=='Enter'){fq=e.target.value.trim().toLowerCase();render()}});
+document.addEventListener('input',e=>{if(e.target.id=='rcq'){NC.q=e.target.value.trim().toLowerCase();const l=$('#rcl');if(l)l.innerHTML=rcListHtml()}});
+$('#q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();render()});
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',e=>{e.preventDefault();if(!e.dataTransfer.files.length)return;if(!can()){toast('Hãy đăng nhập để tải lên.');return modal('login')}if(cur&&!canPut(cur))return toast('Bạn không có quyền tải lên thư mục này.');modal('up');$('#upf').files=e.dataTransfer.files});
+$('#ov').addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.tagName=='INPUT'&&e.target.type!='file'){const b=$('#md .btn.p');b&&b.click()}});
+if(S&&!location.hash.slice(1)){F={...defF};showF=true}
+cur=decodeURIComponent(location.hash.slice(1));
+const warm=()=>{if(API&&!document.hidden)fetch(API,{cache:'no-store',mode:'no-cors'}).catch(()=>{})};
+loadApi().then(()=>{warm();setInterval(warm,240000);document.addEventListener('visibilitychange',warm)}).then(()=>load()).then(()=>{if(S&&S.mc){lockModal=true;modal('pwforce')}else if(!API)modal('set')});
+</script></body></html>
